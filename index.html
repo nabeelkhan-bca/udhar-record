@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>उधार रिकॉर्ड सिस्टम (Local)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🧾 दुकान उधार रिकॉर्ड सिस्टम</h1>
+    <div class="form">
+      <input type="text" id="name" placeholder="ग्राहक का नाम">
+      <input type="text" id="mobile" placeholder="मोबाइल नंबर">
+      <input type="number" id="amount" placeholder="उधार राशि (₹)">
+      <button id="addBtn">जोड़ें</button>
+    </div>
+
+    <h2>ग्राहक सूची</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>नाम</th>
+          <th>मोबाइल</th>
+          <th>राशि (₹)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="recordList"></tbody>
+    </table>
+
+    <button id="clearAll" class="danger">सभी रिकॉर्ड हटाएँ</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
