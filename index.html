@@ -1,36 +1,134 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>उधार रिकॉर्ड सिस्टम (Local)</title>
+  <title>Advanced Loan Record System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🧾 दुकान उधार रिकॉर्ड सिस्टम</h1>
-    <div class="form">
-      <input type="text" id="name" placeholder="ग्राहक का नाम">
-      <input type="text" id="mobile" placeholder="मोबाइल नंबर">
-      <input type="number" id="amount" placeholder="उधार राशि (₹)">
-      <button id="addBtn">जोड़ें</button>
+    <div class="header">
+      <h1><i class="fas fa-receipt"></i> Advanced Loan Record System</h1>
+      <div class="summary-cards">
+        <div class="card total">
+          <i class="fas fa-users"></i>
+          <div>
+            <h3>Total Customers</h3>
+            <span id="totalCustomers">0</span>
+          </div>
+        </div>
+        <div class="card debt">
+          <i class="fas fa-rupee-sign"></i>
+          <div>
+            <h3>Total Balance</h3>
+            <span id="totalDebt">₹0</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <h2>ग्राहक सूची</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>नाम</th>
-          <th>मोबाइल</th>
-          <th>राशि (₹)</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="recordList"></tbody>
-    </table>
+    <div class="form-container">
+      <h2><i class="fas fa-plus-circle"></i> Add New Record</h2>
+      <div class="form">
+        <div class="input-group">
+          <input type="date" id="date" value="">
+          <label for="date">Date</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="name" placeholder=" ">
+          <label for="name">Customer Name</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="mobile" placeholder=" ">
+          <label for="mobile">Mobile Number</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="udharAmount" placeholder=" ">
+          <label for="udharAmount">Loan Amount (₹)</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="creditAmount" placeholder=" ">
+          <label for="creditAmount">Credit Amount (₹)</label>
+        </div>
+        <button id="addBtn" class="glow-btn">
+          <i class="fas fa-plus"></i> Add Record
+        </button>
+      </div>
+    </div>
 
-    <button id="clearAll" class="danger">सभी रिकॉर्ड हटाएँ</button>
+    <div class="table-container">
+      <h2><i class="fas fa-list"></i> Customer Records</h2>
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search customers...">
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="date">Date <i class="fas fa-sort"></i></th>
+              <th data-sort="name">Customer Name <i class="fas fa-sort"></i></th>
+              <th data-sort="mobile">Mobile Number <i class="fas fa-sort"></i></th>
+              <th data-sort="udhar">Loan Amount <i class="fas fa-sort"></i></th>
+              <th data-sort="credit">Credit Amount <i class="fas fa-sort"></i></th>
+              <th data-sort="balance">Balance Amount <i class="fas fa-sort"></i></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordList"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="clearAll" class="danger-btn">
+        <i class="fas fa-trash"></i> Delete All Records
+      </button>
+      <button id="exportBtn" class="export-btn">
+        <i class="fas fa-download"></i> Export to CSV
+      </button>
+    </div>
   </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Record</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <input type="date" id="editDate">
+          <label for="editDate">Date</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="editName" placeholder=" ">
+          <label for="editName">Customer Name</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="editMobile" placeholder=" ">
+          <label for="editMobile">Mobile Number</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="editUdhar" placeholder=" ">
+          <label for="editUdhar">Loan Amount (₹)</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="editCredit" placeholder=" ">
+          <label for="editCredit">Credit Amount (₹)</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="updateBtn" class="glow-btn">Update Record</button>
+        <button id="cancelBtn" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification" id="notification"></div>
 
   <script src="script.js"></script>
 </body>
