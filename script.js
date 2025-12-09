@@ -1,7 +1,8 @@
 const nameInput = document.getElementById("name");
 const mobileInput = document.getElementById("mobile");
-const udharInput = document.getElementById("udharAmount");
-const creditInput = document.getElementById("creditAmount");
+const previousDueInput = document.getElementById("previousDue");
+const paymentAmountInput = document.getElementById("paymentAmount");
+const newDueInput = document.getElementById("newDue");
 const dateInput = document.getElementById("date");
 const addBtn = document.getElementById("addBtn");
 const recordList = document.getElementById("recordList");
@@ -15,8 +16,9 @@ const totalDebt = document.getElementById("totalDebt");
 const editModal = document.getElementById("editModal");
 const editName = document.getElementById("editName");
 const editMobile = document.getElementById("editMobile");
-const editUdhar = document.getElementById("editUdhar");
-const editCredit = document.getElementById("editCredit");
+const editPreviousDue = document.getElementById("editPreviousDue");
+const editPaymentAmount = document.getElementById("editPaymentAmount");
+const editNewDue = document.getElementById("editNewDue");
 const editDate = document.getElementById("editDate");
 const updateBtn = document.getElementById("updateBtn");
 const cancelBtn = document.getElementById("cancelBtn");
@@ -37,6 +39,15 @@ function init() {
   setupEventListeners();
   updateSummary();
 }
+
+// Auto-capitalize name inputs
+nameInput.addEventListener('input', function(e) {
+  this.value = this.value.toUpperCase();
+});
+
+editName.addEventListener('input', function(e) {
+  this.value = this.value.toUpperCase();
+});
 
 function setupEventListeners() {
   addBtn.addEventListener("click", saveRecord);
@@ -80,7 +91,7 @@ function loadRecords() {
   if (filteredRecords.length === 0) {
     recordList.innerHTML = `
       <tr>
-        <td colspan="7" class="no-data">
+        <td colspan="8" class="no-data">
           <i class="fas fa-inbox"></i>
           <p>No records found</p>
         </td>
@@ -91,20 +102,19 @@ function loadRecords() {
 
   filteredRecords.forEach((rec, index) => {
     const originalIndex = records.findIndex(r => 
-      r.date === rec.date && r.name === rec.name && r.mobile === rec.mobile
+      r.date === rec.date && r.name === rec.name && r.mobile === rec.mobile && r.previousDue === rec.previousDue
     );
     
-    const balance = rec.udharAmount - rec.creditAmount;
+    const totalRemaining = rec.previousDue + rec.newDue - rec.paymentAmount;
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${formatDate(rec.date)}</td>
       <td>${rec.name}</td>
       <td>${rec.mobile}</td>
-      <td class="debit">₹${rec.udharAmount}</td>
-      <td class="credit">₹${rec.creditAmount}</td>
-      <td class="balance ${balance < 0 ? 'negative' : balance > 0 ? 'positive' : ''}">
-        ₹${Math.abs(balance)} ${balance < 0 ? '(Credit)' : balance > 0 ? '(Loan)' : ''}
-      </td>
+      <td class="previous-due">₹${rec.previousDue}</td>
+      <td class="payment">₹${rec.paymentAmount}</td>
+      <td class="new-due">₹${rec.newDue}</td>
+      <td class="new-due"><strong>₹${totalRemaining}</strong></td>
       <td>
         <button class="editBtn" onclick="openEditModal(${originalIndex})">
           <i class="fas fa-edit"></i>
@@ -119,16 +129,21 @@ function loadRecords() {
 }
 
 function sortRecords(records, column, direction) {
-  return records.sort((a, b) => {
-    let aVal = a[column];
-    let bVal = b[column];
+  return records.slice().sort((a, b) => {
+    let aVal, bVal;
 
-    if (column === 'date') {
-      aVal = new Date(aVal);
-      bVal = new Date(bVal);
-    } else if (column === 'udhar' || column === 'credit' || column === 'balance') {
-      aVal = parseFloat(aVal);
-      bVal = parseFloat(bVal);
+    if (column === 'totalRemaining') {
+      aVal = a.previousDue + a.newDue - a.paymentAmount;
+      bVal = b.previousDue + b.newDue - b.paymentAmount;
+    } else if (column === 'date') {
+      aVal = new Date(a[column]);
+      bVal = new Date(b[column]);
+    } else if (column === 'previousDue' || column === 'paymentAmount' || column === 'newDue') {
+      aVal = parseFloat(a[column]);
+      bVal = parseFloat(b[column]);
+    } else {
+      aVal = a[column];
+      bVal = b[column];
     }
 
     if (direction === 'asc') {
@@ -161,24 +176,20 @@ function handleSort(column) {
 }
 
 function saveRecord() {
-  const name = nameInput.value.trim();
+  const name = nameInput.value.trim().toUpperCase();
   const mobile = mobileInput.value.trim();
-  const udharAmount = parseFloat(udharInput.value) || 0;
-  const creditAmount = parseFloat(creditInput.value) || 0;
+  const previousDue = parseFloat(previousDueInput.value) || 0;
+  const paymentAmount = parseFloat(paymentAmountInput.value) || 0;
+  const newDue = parseFloat(newDueInput.value) || 0;
   const date = dateInput.value;
 
   if (!name || !mobile || !date) {
-    showNotification("Please fill all required information!", "error");
-    return;
-  }
-
-  if (udharAmount === 0 && creditAmount === 0) {
-    showNotification("Please enter loan or credit amount!", "error");
+    showNotification("Please fill all required fields (Name, Mobile, Date)!", "error");
     return;
   }
 
   const records = JSON.parse(localStorage.getItem("records")) || [];
-  records.push({ name, mobile, udharAmount, creditAmount, date });
+  records.push({ name, mobile, previousDue, paymentAmount, newDue, date });
   localStorage.setItem("records", JSON.stringify(records));
   
   clearForm();
@@ -190,19 +201,20 @@ function saveRecord() {
 function updateRecord() {
   if (currentEditIndex === -1) return;
 
-  const name = editName.value.trim();
+  const name = editName.value.trim().toUpperCase();
   const mobile = editMobile.value.trim();
-  const udharAmount = parseFloat(editUdhar.value) || 0;
-  const creditAmount = parseFloat(editCredit.value) || 0;
+  const previousDue = parseFloat(editPreviousDue.value) || 0;
+  const paymentAmount = parseFloat(editPaymentAmount.value) || 0;
+  const newDue = parseFloat(editNewDue.value) || 0;
   const date = editDate.value;
 
   if (!name || !mobile || !date) {
-    showNotification("Please fill all required information!", "error");
+    showNotification("Please fill all required fields!", "error");
     return;
   }
 
   const records = JSON.parse(localStorage.getItem("records")) || [];
-  records[currentEditIndex] = { name, mobile, udharAmount, creditAmount, date };
+  records[currentEditIndex] = { name, mobile, previousDue, paymentAmount, newDue, date };
   localStorage.setItem("records", JSON.stringify(records));
   
   closeModal();
@@ -228,8 +240,9 @@ function openEditModal(index) {
   
   editName.value = record.name;
   editMobile.value = record.mobile;
-  editUdhar.value = record.udharAmount;
-  editCredit.value = record.creditAmount;
+  editPreviousDue.value = record.previousDue;
+  editPaymentAmount.value = record.paymentAmount;
+  editNewDue.value = record.newDue;
   editDate.value = record.date;
   
   currentEditIndex = index;
@@ -261,18 +274,18 @@ function exportToCSV() {
     return;
   }
 
-  let csv = "Date,Customer Name,Mobile Number,Loan Amount,Credit Amount,Balance Amount\n";
+  let csv = "Date,Customer Name,Mobile Number,Previous Due,Payment Amount,New Due,Total Remaining\n";
   
   records.forEach(rec => {
-    const balance = rec.udharAmount - rec.creditAmount;
-    csv += `"${formatDate(rec.date)}","${rec.name}","${rec.mobile}","${rec.udharAmount}","${rec.creditAmount}","${balance}"\n`;
+    const totalRemaining = rec.previousDue + rec.newDue - rec.paymentAmount;
+    csv += `"${formatDate(rec.date)}","${rec.name}","${rec.mobile}","${rec.previousDue}","${rec.paymentAmount}","${rec.newDue}","${totalRemaining}"\n`;
   });
 
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `loan_records_${new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `haji_provision_store_${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   window.URL.revokeObjectURL(url);
   
@@ -282,19 +295,20 @@ function exportToCSV() {
 function updateSummary() {
   const records = JSON.parse(localStorage.getItem("records")) || [];
   const total = records.length;
-  const totalUdhar = records.reduce((sum, rec) => sum - rec.udharAmount, 0) ;
-  const totalCredit = records.reduce((sum, rec) => sum + rec.creditAmount, 0);
-  const netBalance = totalUdhar - totalCredit;
+  const totalOutstanding = records.reduce((sum, rec) => {
+    return sum + (rec.previousDue + rec.newDue - rec.paymentAmount);
+  }, 0);
 
   totalCustomers.textContent = total;
-  totalDebt.textContent = `₹${netBalance}`;
+  totalDebt.textContent = `₹${totalOutstanding}`;
 }
 
 function clearForm() {
   nameInput.value = "";
   mobileInput.value = "";
-  udharInput.value = "";
-  creditInput.value = "";
+  previousDueInput.value = "0";
+  paymentAmountInput.value = "0";
+  newDueInput.value = "0";
   dateInput.valueAsDate = new Date();
 }
 
