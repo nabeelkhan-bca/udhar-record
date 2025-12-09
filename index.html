@@ -30,7 +30,7 @@
     </div>
 
     <div class="form-container">
-      <h2><i class="fas fa-plus-circle"></i> Add New Record</h2>
+      <h2><i class="fas fa-plus-circle"></i> Add New Transaction</h2>
       <div class="form">
         <div class="input-group">
           <input type="date" id="date" value="">
@@ -45,25 +45,28 @@
           <label for="mobile">Mobile Number</label>
         </div>
         <div class="input-group">
-          <input type="number" id="previousDue" placeholder=" " value="0">
-          <label for="previousDue">Previous Due (₹)</label>
+          <select id="transactionType">
+            <option value="credit">Credit (Udhar)</option>
+            <option value="payment">Payment (Jama)</option>
+          </select>
+          <label for="transactionType">Transaction Type</label>
         </div>
         <div class="input-group">
-          <input type="number" id="paymentAmount" placeholder=" " value="0">
-          <label for="paymentAmount">Payment Amount (₹)</label>
+          <input type="number" id="amount" placeholder=" " value="0">
+          <label for="amount">Amount (₹)</label>
         </div>
         <div class="input-group">
-          <input type="number" id="newDue" placeholder=" " value="0">
-          <label for="newDue">New Due (₹)</label>
+          <input type="text" id="remarks" placeholder=" ">
+          <label for="remarks">Remarks (Optional)</label>
         </div>
         <button id="addBtn" class="glow-btn">
-          <i class="fas fa-plus"></i> Add Record
+          <i class="fas fa-plus"></i> Add Transaction
         </button>
       </div>
     </div>
 
     <div class="table-container">
-      <h2><i class="fas fa-list"></i> Customer Records</h2>
+      <h2><i class="fas fa-list"></i> Customer Ledger</h2>
       <div class="search-bar">
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="Search customers...">
@@ -75,10 +78,10 @@
               <th data-sort="date">Date <i class="fas fa-sort"></i></th>
               <th data-sort="name">Customer Name <i class="fas fa-sort"></i></th>
               <th data-sort="mobile">Mobile Number <i class="fas fa-sort"></i></th>
-              <th data-sort="previousDue">Previous Due <i class="fas fa-sort"></i></th>
-              <th data-sort="paymentAmount">Payment Amount <i class="fas fa-sort"></i></th>
-              <th data-sort="newDue">New Due <i class="fas fa-sort"></i></th>
-              <th data-sort="totalRemaining">Total Remaining <i class="fas fa-sort"></i></th>
+              <th data-sort="type">Type <i class="fas fa-sort"></i></th>
+              <th data-sort="amount">Amount <i class="fas fa-sort"></i></th>
+              <th data-sort="balance">Balance <i class="fas fa-sort"></i></th>
+              <th>Remarks</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -92,7 +95,7 @@
         <i class="fas fa-trash"></i> Delete All Records
       </button>
       <button id="exportBtn" class="export-btn">
-        <i class="fas fa-download"></i> Export to CSV
+        <i class="fas fa-download"></i> Export to Excel
       </button>
     </div>
   </div>
@@ -101,7 +104,7 @@
   <div id="editModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Edit Record</h3>
+        <h3>Edit Transaction</h3>
         <span class="close">&times;</span>
       </div>
       <div class="modal-body">
@@ -118,20 +121,23 @@
           <label for="editMobile">Mobile Number</label>
         </div>
         <div class="input-group">
-          <input type="number" id="editPreviousDue" placeholder=" ">
-          <label for="editPreviousDue">Previous Due (₹)</label>
+          <select id="editTransactionType">
+            <option value="credit">Credit (Udhar)</option>
+            <option value="payment">Payment (Jama)</option>
+          </select>
+          <label for="editTransactionType">Transaction Type</label>
         </div>
         <div class="input-group">
-          <input type="number" id="editPaymentAmount" placeholder=" ">
-          <label for="editPaymentAmount">Payment Amount (₹)</label>
+          <input type="number" id="editAmount" placeholder=" ">
+          <label for="editAmount">Amount (₹)</label>
         </div>
         <div class="input-group">
-          <input type="number" id="editNewDue" placeholder=" ">
-          <label for="editNewDue">New Due (₹)</label>
+          <input type="text" id="editRemarks" placeholder=" ">
+          <label for="editRemarks">Remarks</label>
         </div>
       </div>
       <div class="modal-footer">
-        <button id="updateBtn" class="glow-btn">Update Record</button>
+        <button id="updateBtn" class="glow-btn">Update Transaction</button>
         <button id="cancelBtn" class="cancel-btn">Cancel</button>
       </div>
     </div>
