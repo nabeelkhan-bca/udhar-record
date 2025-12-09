@@ -1,7 +1,7 @@
 // Global variables
 let currentEditIndex = -1;
-let sortState = { column: 'date', direction: 'desc' };
 let currentTab = 'new-entry';
+let transactions = [];
 
 // DOM elements
 const elements = {
@@ -23,19 +23,20 @@ const elements = {
   totalDebit: document.getElementById("totalDebit"),
   
   // Table elements
-  recordList: document.getElementById("recordList"),
-  transactionList: document.getElementById("transactionList"),
+  customerList: document.getElementById("customerList"),
+  dateWiseLedger: document.getElementById("dateWiseLedger"),
   searchInput: document.getElementById("searchInput"),
   
   // Filter elements
-  historyCustomerFilter: document.getElementById("historyCustomerFilter"),
-  historyDateFilter: document.getElementById("historyDateFilter"),
-  historyTypeFilter: document.getElementById("historyTypeFilter"),
+  ledgerCustomerFilter: document.getElementById("ledgerCustomerFilter"),
+  ledgerDateFilter: document.getElementById("ledgerDateFilter"),
+  viewLedgerBtn: document.getElementById("viewLedgerBtn"),
+  ledgerSummary: document.getElementById("ledgerSummary"),
   
   // Action buttons
   clearAll: document.getElementById("clearAll"),
   exportBtn: document.getElementById("exportBtn"),
-  exportTransactionsBtn: document.getElementById("exportTransactionsBtn"),
+  exportDateWiseBtn: document.getElementById("exportDateWiseBtn"),
   
   // Modal elements
   editModal: document.getElementById("editModal"),
@@ -69,8 +70,9 @@ function init() {
   setupEventListeners();
   
   // Load initial data
+  loadTransactions();
   loadCustomers();
-  loadTransactionHistory();
+  updateDateWiseLedgerFilters();
   updateSummary();
   
   // Auto-capitalize name inputs
@@ -98,8 +100,9 @@ function setupEventListeners() {
   
   // Action buttons
   elements.clearAll.addEventListener("click", clearAllRecords);
-  elements.exportBtn.addEventListener("click", exportToCSV);
-  elements.exportTransactionsBtn.addEventListener("click", exportTransactionsToCSV);
+  elements.exportBtn.addEventListener("click", exportCustomerLedger);
+  elements.exportDateWiseBtn.addEventListener("click", exportDateWiseLedger);
+  elements.viewLedgerBtn.addEventListener("click", loadDateWiseLedger);
   
   // Modal events
   elements.updateBtn.addEventListener("click", updateTransaction);
@@ -107,18 +110,9 @@ function setupEventListeners() {
   elements.closeBtn.addEventListener("click", closeModal);
   
   // Search and filters
-  elements.searchInput.addEventListener("input", filterRecords);
-  elements.historyCustomerFilter.addEventListener("change", filterTransactionHistory);
-  elements.historyDateFilter.addEventListener("change", filterTransactionHistory);
-  elements.historyTypeFilter.addEventListener("change", filterTransactionHistory);
-  
-  // Sort functionality
-  document.querySelectorAll('th[data-sort]').forEach(th => {
-    th.addEventListener('click', () => {
-      const column = th.getAttribute('data-sort');
-      handleSort(column);
-    });
-  });
+  elements.searchInput.addEventListener("input", filterCustomers);
+  elements.ledgerCustomerFilter.addEventListener("change", loadDateWiseLedger);
+  elements.ledgerDateFilter.addEventListener("change", loadDateWiseLedger);
   
   // Close modal when clicking outside
   window.addEventListener("click", (event) => {
@@ -142,11 +136,20 @@ function switchTab(tabName) {
   currentTab = tabName;
   
   // Load appropriate data
-  if (tabName === 'customer-records') {
+  if (tabName === 'customer-ledger') {
     loadCustomers();
-  } else if (tabName === 'transaction-history') {
-    loadTransactionHistory();
+  } else if (tabName === 'date-wise-ledger') {
+    updateDateWiseLedgerFilters();
+    loadDateWiseLedger();
   }
+}
+
+function loadTransactions() {
+  transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+}
+
+function saveTransactions() {
+  localStorage.setItem("transactions", JSON.stringify(transactions));
 }
 
 function loadCustomerBalance() {
@@ -154,17 +157,25 @@ function loadCustomerBalance() {
   const mobile = elements.mobileInput.value.trim();
   
   if (name && mobile) {
-    const customers = getCustomersData();
-    const customer = customers.find(c => c.name === name && c.mobile === mobile);
-    
-    if (customer) {
-      elements.previousDueInput.value = customer.balance;
-      calculateNewDue();
-    } else {
-      elements.previousDueInput.value = '0';
-      elements.newDueInput.value = '0';
-    }
+    const balance = getCustomerBalance(name, mobile);
+    elements.previousDueInput.value = balance;
+    calculateNewDue();
+  } else {
+    elements.previousDueInput.value = '0';
+    elements.newDueInput.value = '0';
   }
+}
+
+function getCustomerBalance(name, mobile) {
+  const customerTransactions = transactions.filter(t => 
+    t.name === name && t.mobile === mobile
+  );
+  
+  if (customerTransactions.length === 0) return 0;
+  
+  // Return the latest balance
+  const latestTransaction = customerTransactions[customerTransactions.length - 1];
+  return latestTransaction.newDue;
 }
 
 function calculateNewDue() {
@@ -197,36 +208,86 @@ function saveTransaction() {
     return;
   }
   
-  // Save transaction
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-  transactions.push({
+  // Create transaction
+  const transaction = {
     id: Date.now(),
     name,
     mobile,
     date,
     type,
     amount,
-    description,
+    description: description || `${type === 'credit' ? 'Purchase' : 'Payment'} of ₹${amount}`,
     previousDue,
     newDue,
     timestamp: new Date().toISOString()
-  });
-  localStorage.setItem("transactions", JSON.stringify(transactions));
+  };
+  
+  // Add to transactions array
+  transactions.push(transaction);
+  
+  // Sort by date to maintain chronological order
+  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // Save to localStorage
+  saveTransactions();
   
   // Clear form
   clearForm();
   
   // Update UI
   loadCustomers();
-  loadTransactionHistory();
+  updateDateWiseLedgerFilters();
+  loadDateWiseLedger();
   updateSummary();
-  updateCustomerList();
   
   showNotification("Transaction added successfully!", "success");
 }
 
-function getCustomersData() {
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+function loadCustomers() {
+  elements.customerList.innerHTML = "";
+  const customers = getUniqueCustomers();
+  const searchTerm = elements.searchInput.value.toLowerCase();
+  
+  // Apply search filter
+  const filteredCustomers = customers.filter(customer => 
+    customer.name.toLowerCase().includes(searchTerm) || 
+    customer.mobile.includes(searchTerm)
+  );
+  
+  if (filteredCustomers.length === 0) {
+    elements.customerList.innerHTML = `
+      <tr>
+        <td colspan="7" class="no-data">
+          <i class="fas fa-inbox"></i>
+          <p>No customers found</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  filteredCustomers.forEach(customer => {
+    const row = document.createElement("tr");
+    const balanceClass = customer.balance >= 0 ? 'positive' : 'negative';
+    
+    row.innerHTML = `
+      <td>${customer.name}</td>
+      <td>${customer.mobile}</td>
+      <td class="credit">₹${customer.totalCredit.toFixed(2)}</td>
+      <td class="debit">₹${customer.totalDebit.toFixed(2)}</td>
+      <td class="balance ${balanceClass}"><strong>₹${customer.balance.toFixed(2)}</strong></td>
+      <td>${formatDate(customer.lastTransaction)}</td>
+      <td>
+        <button class="viewBtn" onclick="viewCustomerLedger('${customer.name}', '${customer.mobile}')">
+          <i class="fas fa-eye"></i> View Ledger
+        </button>
+      </td>
+    `;
+    elements.customerList.appendChild(row);
+  });
+}
+
+function getUniqueCustomers() {
   const customers = {};
   
   transactions.forEach(transaction => {
@@ -238,17 +299,19 @@ function getCustomersData() {
         totalCredit: 0,
         totalDebit: 0,
         balance: 0,
-        lastTransaction: transaction.date
+        lastTransaction: transaction.date,
+        transactions: []
       };
     }
     
     if (transaction.type === 'credit') {
       customers[key].totalCredit += transaction.amount;
-      customers[key].balance += transaction.amount;
     } else {
       customers[key].totalDebit += transaction.amount;
-      customers[key].balance -= transaction.amount;
     }
+    
+    customers[key].balance = transaction.newDue;
+    customers[key].transactions.push(transaction);
     
     // Update last transaction date
     if (new Date(transaction.date) > new Date(customers[key].lastTransaction)) {
@@ -259,191 +322,219 @@ function getCustomersData() {
   return Object.values(customers);
 }
 
-function loadCustomers() {
-  elements.recordList.innerHTML = "";
-  const customers = getCustomersData();
-  const searchTerm = elements.searchInput.value.toLowerCase();
+function updateDateWiseLedgerFilters() {
+  const customers = getUniqueCustomers();
   
-  // Apply search filter
-  const filteredCustomers = customers.filter(customer => 
-    customer.name.toLowerCase().includes(searchTerm) || 
-    customer.mobile.includes(searchTerm)
-  );
-  
-  if (filteredCustomers.length === 0) {
-    elements.recordList.innerHTML = `
-      <tr>
-        <td colspan="6" class="no-data">
-          <i class="fas fa-inbox"></i>
-          <p>No customers found</p>
-        </td>
-      </tr>
-    `;
-    return;
-  }
-  
-  // Sort customers
-  const sortedCustomers = sortCustomers(filteredCustomers, sortState.column, sortState.direction);
-  
-  sortedCustomers.forEach((customer, index) => {
-    const row = document.createElement("tr");
-    const balanceClass = customer.balance >= 0 ? 'positive' : 'negative';
-    
-    row.innerHTML = `
-      <td>${customer.name}</td>
-      <td>${customer.mobile}</td>
-      <td class="credit">₹${customer.totalCredit.toFixed(2)}</td>
-      <td class="debit">₹${customer.totalDebit.toFixed(2)}</td>
-      <td class="balance ${balanceClass}"><strong>₹${customer.balance.toFixed(2)}</strong></td>
-      <td>
-        <button class="viewBtn" onclick="viewCustomerHistory('${customer.name}', '${customer.mobile}')">
-          <i class="fas fa-eye"></i>
-        </button>
-        <button class="editBtn" onclick="editCustomer('${customer.name}', '${customer.mobile}')">
-          <i class="fas fa-edit"></i>
-        </button>
-      </td>
-    `;
-    elements.recordList.appendChild(row);
-  });
-}
-
-function sortCustomers(customers, column, direction) {
-  return customers.slice().sort((a, b) => {
-    let aVal, bVal;
-    
-    if (column === 'balance') {
-      aVal = a.balance;
-      bVal = b.balance;
-    } else if (column === 'totalCredit') {
-      aVal = a.totalCredit;
-      bVal = b.totalCredit;
-    } else if (column === 'totalDebit') {
-      aVal = a.totalDebit;
-      bVal = b.totalDebit;
-    } else {
-      aVal = a[column];
-      bVal = b[column];
-    }
-    
-    if (direction === 'asc') {
-      return aVal > bVal ? 1 : -1;
-    } else {
-      return aVal < bVal ? 1 : -1;
-    }
-  });
-}
-
-function loadTransactionHistory() {
-  elements.transactionList.innerHTML = "";
-  let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-  
-  // Apply filters
-  const customerFilter = elements.historyCustomerFilter.value;
-  const dateFilter = elements.historyDateFilter.value;
-  const typeFilter = elements.historyTypeFilter.value;
-  
-  if (customerFilter) {
-    const [name, mobile] = customerFilter.split('|');
-    transactions = transactions.filter(t => t.name === name && t.mobile === mobile);
-  }
-  
-  if (dateFilter) {
-    transactions = transactions.filter(t => t.date === dateFilter);
-  }
-  
-  if (typeFilter) {
-    transactions = transactions.filter(t => t.type === typeFilter);
-  }
-  
-  // Sort by date (newest first)
-  transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-  
-  if (transactions.length === 0) {
-    elements.transactionList.innerHTML = `
-      <tr>
-        <td colspan="8" class="no-data">
-          <i class="fas fa-inbox"></i>
-          <p>No transactions found</p>
-        </td>
-      </tr>
-    `;
-    return;
-  }
-  
-  transactions.forEach((transaction, index) => {
-    const row = document.createElement("tr");
-    const typeClass = transaction.type === 'credit' ? 'credit' : 'debit';
-    const balanceClass = transaction.newDue >= 0 ? 'positive' : 'negative';
-    
-    row.innerHTML = `
-      <td>${formatDate(transaction.date)}</td>
-      <td>${transaction.name}</td>
-      <td>${transaction.mobile}</td>
-      <td class="${typeClass}"><strong>${transaction.type.toUpperCase()}</strong></td>
-      <td class="${typeClass}">₹${transaction.amount.toFixed(2)}</td>
-      <td>${transaction.description || '-'}</td>
-      <td class="balance ${balanceClass}"><strong>₹${transaction.newDue.toFixed(2)}</strong></td>
-      <td>
-        <button class="editBtn" onclick="openEditModal(${index})">
-          <i class="fas fa-edit"></i>
-        </button>
-        <button class="deleteBtn" onclick="deleteTransaction(${index})">
-          <i class="fas fa-trash"></i>
-        </button>
-      </td>
-    `;
-    elements.transactionList.appendChild(row);
-  });
-}
-
-function updateCustomerList() {
-  const customers = getCustomersData();
-  elements.customerList.innerHTML = '';
-  
-  customers.forEach(customer => {
-    const option = document.createElement('option');
-    option.value = customer.name;
-    elements.customerList.appendChild(option);
-  });
-  
-  // Update history customer filter
-  elements.historyCustomerFilter.innerHTML = '<option value="">All Customers</option>';
+  // Update customer filter
+  elements.ledgerCustomerFilter.innerHTML = '<option value="">All Customers</option>';
   customers.forEach(customer => {
     const option = document.createElement('option');
     option.value = `${customer.name}|${customer.mobile}`;
     option.textContent = `${customer.name} (${customer.mobile})`;
-    elements.historyCustomerFilter.appendChild(option);
+    elements.ledgerCustomerFilter.appendChild(option);
   });
 }
 
-function handleSort(column) {
-  if (sortState.column === column) {
-    sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortState.column = column;
-    sortState.direction = 'asc';
+function loadDateWiseLedger() {
+  const customerFilter = elements.ledgerCustomerFilter.value;
+  const dateFilter = elements.ledgerDateFilter.value;
+  
+  let filteredTransactions = [...transactions];
+  
+  // Apply customer filter
+  if (customerFilter) {
+    const [name, mobile] = customerFilter.split('|');
+    filteredTransactions = filteredTransactions.filter(t => 
+      t.name === name && t.mobile === mobile
+    );
   }
   
-  // Update sort icons
-  document.querySelectorAll('th[data-sort]').forEach(th => {
-    const icon = th.querySelector('i');
-    if (th.getAttribute('data-sort') === column) {
-      icon.className = sortState.direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+  // Apply date filter
+  if (dateFilter) {
+    filteredTransactions = filteredTransactions.filter(t => t.date === dateFilter);
+  }
+  
+  // Sort by date
+  filteredTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  displayDateWiseLedger(filteredTransactions, customerFilter);
+}
+
+function displayDateWiseLedger(filteredTransactions, customerFilter) {
+  elements.dateWiseLedger.innerHTML = "";
+  
+  if (filteredTransactions.length === 0) {
+    elements.dateWiseLedger.innerHTML = `
+      <tr>
+        <td colspan="5" class="no-data">
+          <i class="fas fa-inbox"></i>
+          <p>No transactions found for selected criteria</p>
+        </td>
+      </tr>
+    `;
+    elements.ledgerSummary.innerHTML = "";
+    return;
+  }
+  
+  // Calculate summary
+  let totalCredit = 0;
+  let totalDebit = 0;
+  
+  filteredTransactions.forEach(transaction => {
+    if (transaction.type === 'credit') {
+      totalCredit += transaction.amount;
     } else {
-      icon.className = 'fas fa-sort';
+      totalDebit += transaction.amount;
     }
   });
   
-  if (currentTab === 'customer-records') {
-    loadCustomers();
-  } else if (currentTab === 'transaction-history') {
-    loadTransactionHistory();
+  // Display summary
+  const summaryHTML = `
+    <div class="ledger-summary-cards">
+      <div class="summary-card">
+        <i class="fas fa-arrow-up"></i>
+        <div>
+          <h4>Total Credit</h4>
+          <span>₹${totalCredit.toFixed(2)}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <i class="fas fa-arrow-down"></i>
+        <div>
+          <h4>Total Debit</h4>
+          <span>₹${totalDebit.toFixed(2)}</span>
+        </div>
+      </div>
+      <div class="summary-card">
+        <i class="fas fa-balance-scale"></i>
+        <div>
+          <h4>Net Balance</h4>
+          <span>₹${(totalCredit - totalDebit).toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  elements.ledgerSummary.innerHTML = summaryHTML;
+  
+  // Display transactions
+  let runningBalance = 0;
+  
+  filteredTransactions.forEach((transaction, index) => {
+    // Calculate running balance
+    if (index === 0) {
+      runningBalance = transaction.previousDue;
+    }
+    
+    const row = document.createElement("tr");
+    
+    if (transaction.type === 'credit') {
+      runningBalance += transaction.amount;
+      row.innerHTML = `
+        <td>${formatDate(transaction.date)}</td>
+        <td>${transaction.description}</td>
+        <td class="credit">₹${transaction.amount.toFixed(2)}</td>
+        <td>-</td>
+        <td class="balance ${runningBalance >= 0 ? 'positive' : 'negative'}">₹${runningBalance.toFixed(2)}</td>
+      `;
+    } else {
+      runningBalance = Math.max(0, runningBalance - transaction.amount);
+      row.innerHTML = `
+        <td>${formatDate(transaction.date)}</td>
+        <td>${transaction.description}</td>
+        <td>-</td>
+        <td class="debit">₹${transaction.amount.toFixed(2)}</td>
+        <td class="balance ${runningBalance >= 0 ? 'positive' : 'negative'}">₹${runningBalance.toFixed(2)}</td>
+      `;
+    }
+    
+    elements.dateWiseLedger.appendChild(row);
+  });
+}
+
+function viewCustomerLedger(name, mobile) {
+  // Switch to date-wise ledger tab
+  switchTab('date-wise-ledger');
+  
+  // Set the customer filter
+  elements.ledgerCustomerFilter.value = `${name}|${mobile}`;
+  
+  // Load the ledger
+  loadDateWiseLedger();
+  
+  showNotification(`Showing ledger for ${name} (${mobile})`, "success");
+}
+
+function filterCustomers() {
+  loadCustomers();
+}
+
+function deleteTransaction(index) {
+  if (!confirm("Are you sure you want to delete this transaction?")) return;
+  
+  // Find the transaction to delete
+  const transactionToDelete = transactions[index];
+  
+  // Remove from transactions array
+  transactions.splice(index, 1);
+  
+  // Recalculate all balances after this transaction
+  recalculateBalancesFromDate(transactionToDelete.date, transactionToDelete.name, transactionToDelete.mobile);
+  
+  // Save to localStorage
+  saveTransactions();
+  
+  // Update UI
+  loadCustomers();
+  updateDateWiseLedgerFilters();
+  loadDateWiseLedger();
+  updateSummary();
+  
+  showNotification("Transaction deleted successfully!", "success");
+}
+
+function recalculateBalancesFromDate(startDate, customerName, customerMobile) {
+  // Get all transactions for this customer from the start date
+  const customerTransactions = transactions.filter(t => 
+    t.name === customerName && 
+    t.mobile === customerMobile && 
+    new Date(t.date) >= new Date(startDate)
+  );
+  
+  // Sort by date and time
+  customerTransactions.sort((a, b) => {
+    const dateCompare = new Date(a.date) - new Date(b.date);
+    if (dateCompare !== 0) return dateCompare;
+    return new Date(a.timestamp) - new Date(b.timestamp);
+  });
+  
+  // Recalculate balances
+  let runningBalance = 0;
+  
+  // Find the balance before the start date
+  const transactionsBeforeDate = transactions.filter(t => 
+    t.name === customerName && 
+    t.mobile === customerMobile && 
+    new Date(t.date) < new Date(startDate)
+  );
+  
+  if (transactionsBeforeDate.length > 0) {
+    const latestBefore = transactionsBeforeDate[transactionsBeforeDate.length - 1];
+    runningBalance = latestBefore.newDue;
   }
+  
+  // Update balances
+  customerTransactions.forEach(transaction => {
+    transaction.previousDue = runningBalance;
+    if (transaction.type === 'credit') {
+      runningBalance += transaction.amount;
+    } else {
+      runningBalance = Math.max(0, runningBalance - transaction.amount);
+    }
+    transaction.newDue = runningBalance;
+  });
 }
 
 function openEditModal(index) {
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
   const transaction = transactions[index];
   
   elements.editName.value = transaction.name;
@@ -477,9 +568,8 @@ function updateTransaction() {
     return;
   }
   
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-  
   // Update the transaction
+  const oldTransaction = transactions[currentEditIndex];
   transactions[currentEditIndex] = {
     ...transactions[currentEditIndex],
     name,
@@ -487,138 +577,105 @@ function updateTransaction() {
     date,
     type,
     amount,
-    description
+    description: description || `${type === 'credit' ? 'Purchase' : 'Payment'} of ₹${amount}`
   };
   
-  // Recalculate all balances
-  recalculateAllBalances();
+  // Sort by date to maintain chronological order
+  transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // Recalculate balances from the old transaction date
+  recalculateBalancesFromDate(oldTransaction.date, oldTransaction.name, oldTransaction.mobile);
+  
+  // Save to localStorage
+  saveTransactions();
   
   closeModal();
   loadCustomers();
-  loadTransactionHistory();
+  updateDateWiseLedgerFilters();
+  loadDateWiseLedger();
   updateSummary();
+  
   showNotification("Transaction updated successfully!", "success");
-}
-
-function deleteTransaction(index) {
-  if (!confirm("Are you sure you want to delete this transaction?")) return;
-  
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-  transactions.splice(index, 1);
-  localStorage.setItem("transactions", JSON.stringify(transactions));
-  
-  // Recalculate all balances
-  recalculateAllBalances();
-  
-  loadCustomers();
-  loadTransactionHistory();
-  updateSummary();
-  showNotification("Transaction deleted successfully!", "success");
-}
-
-function recalculateAllBalances() {
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-  
-  // Group transactions by customer
-  const customerTransactions = {};
-  transactions.forEach(transaction => {
-    const key = `${transaction.name}-${transaction.mobile}`;
-    if (!customerTransactions[key]) {
-      customerTransactions[key] = [];
-    }
-    customerTransactions[key].push(transaction);
-  });
-  
-  // Sort each customer's transactions by date
-  Object.keys(customerTransactions).forEach(key => {
-    customerTransactions[key].sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    // Recalculate balances
-    let runningBalance = 0;
-    customerTransactions[key].forEach(transaction => {
-      transaction.previousDue = runningBalance;
-      if (transaction.type === 'credit') {
-        runningBalance += transaction.amount;
-      } else {
-        runningBalance = Math.max(0, runningBalance - transaction.amount);
-      }
-      transaction.newDue = runningBalance;
-    });
-  });
-  
-  // Save updated transactions
-  const updatedTransactions = Object.values(customerTransactions).flat();
-  localStorage.setItem("transactions", JSON.stringify(updatedTransactions));
-}
-
-function viewCustomerHistory(name, mobile) {
-  // Switch to transaction history tab and filter by customer
-  switchTab('transaction-history');
-  elements.historyCustomerFilter.value = `${name}|${mobile}`;
-  loadTransactionHistory();
-}
-
-function editCustomer(name, mobile) {
-  // Switch to new entry tab with customer pre-filled
-  switchTab('new-entry');
-  elements.nameInput.value = name;
-  elements.mobileInput.value = mobile;
-  loadCustomerBalance();
 }
 
 function clearAllRecords() {
   if (!confirm("Are you sure you want to delete all records? This action cannot be undone!")) return;
   
+  transactions = [];
   localStorage.removeItem("transactions");
   loadCustomers();
-  loadTransactionHistory();
+  updateDateWiseLedgerFilters();
+  loadDateWiseLedger();
   updateSummary();
-  updateCustomerList();
   showNotification("All records deleted successfully!", "success");
 }
 
-function filterRecords() {
-  if (currentTab === 'customer-records') {
-    loadCustomers();
-  }
-}
-
-function filterTransactionHistory() {
-  loadTransactionHistory();
-}
-
-function exportToCSV() {
-  const customers = getCustomersData();
+function exportCustomerLedger() {
+  const customers = getUniqueCustomers();
   if (customers.length === 0) {
     showNotification("No customer records to export!", "error");
     return;
   }
   
-  let csv = "Customer Name,Mobile Number,Total Credit,Total Debit,Balance\n";
+  let csv = "Customer Name,Mobile Number,Total Credit,Total Debit,Current Balance,Last Transaction\n";
   
   customers.forEach(customer => {
-    csv += `"${customer.name}","${customer.mobile}","${customer.totalCredit.toFixed(2)}","${customer.totalDebit.toFixed(2)}","${customer.balance.toFixed(2)}"\n`;
+    csv += `"${customer.name}","${customer.mobile}","${customer.totalCredit.toFixed(2)}","${customer.totalDebit.toFixed(2)}","${customer.balance.toFixed(2)}","${formatDate(customer.lastTransaction)}"\n`;
   });
   
-  downloadCSV(csv, `haji_customers_${new Date().toISOString().split('T')[0]}.csv`);
-  showNotification("Customer records exported successfully!", "success");
+  downloadCSV(csv, `haji_customer_ledger_${new Date().toISOString().split('T')[0]}.csv`);
+  showNotification("Customer ledger exported successfully!", "success");
 }
 
-function exportTransactionsToCSV() {
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-  if (transactions.length === 0) {
+function exportDateWiseLedger() {
+  const customerFilter = elements.ledgerCustomerFilter.value;
+  const dateFilter = elements.ledgerDateFilter.value;
+  
+  let filteredTransactions = [...transactions];
+  
+  // Apply filters
+  if (customerFilter) {
+    const [name, mobile] = customerFilter.split('|');
+    filteredTransactions = filteredTransactions.filter(t => 
+      t.name === name && t.mobile === mobile
+    );
+  }
+  
+  if (dateFilter) {
+    filteredTransactions = filteredTransactions.filter(t => t.date === dateFilter);
+  }
+  
+  if (filteredTransactions.length === 0) {
     showNotification("No transactions to export!", "error");
     return;
   }
   
-  let csv = "Date,Customer Name,Mobile Number,Type,Amount,Description,Balance\n";
+  // Sort by date
+  filteredTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
   
-  transactions.forEach(transaction => {
-    csv += `"${formatDate(transaction.date)}","${transaction.name}","${transaction.mobile}","${transaction.type}","${transaction.amount.toFixed(2)}","${transaction.description || ''}","${transaction.newDue.toFixed(2)}"\n`;
+  let csv = "Date,Description,Credit (₹),Debit (₹),Balance (₹)\n";
+  
+  let runningBalance = 0;
+  filteredTransactions.forEach((transaction, index) => {
+    if (index === 0) {
+      runningBalance = transaction.previousDue;
+    }
+    
+    if (transaction.type === 'credit') {
+      runningBalance += transaction.amount;
+      csv += `"${formatDate(transaction.date)}","${transaction.description}","${transaction.amount.toFixed(2)}","-","${runningBalance.toFixed(2)}"\n`;
+    } else {
+      runningBalance = Math.max(0, runningBalance - transaction.amount);
+      csv += `"${formatDate(transaction.date)}","${transaction.description}","-","${transaction.amount.toFixed(2)}","${runningBalance.toFixed(2)}"\n`;
+    }
   });
   
-  downloadCSV(csv, `haji_transactions_${new Date().toISOString().split('T')[0]}.csv`);
-  showNotification("Transaction history exported successfully!", "success");
+  const filename = customerFilter ? 
+    `haji_ledger_${customerFilter.split('|')[0]}_${new Date().toISOString().split('T')[0]}.csv` :
+    `haji_date_wise_ledger_${new Date().toISOString().split('T')[0]}.csv`;
+  
+  downloadCSV(csv, filename);
+  showNotification("Date-wise ledger exported successfully!", "success");
 }
 
 function downloadCSV(csv, filename) {
@@ -632,8 +689,7 @@ function downloadCSV(csv, filename) {
 }
 
 function updateSummary() {
-  const customers = getCustomersData();
-  const transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+  const customers = getUniqueCustomers();
   
   const total = customers.length;
   const totalOutstanding = customers.reduce((sum, customer) => sum + Math.max(0, customer.balance), 0);
