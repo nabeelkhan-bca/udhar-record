@@ -1,8 +1,8 @@
 const nameInput = document.getElementById("name");
 const mobileInput = document.getElementById("mobile");
-const previousDueInput = document.getElementById("previousDue");
-const paymentAmountInput = document.getElementById("paymentAmount");
-const newDueInput = document.getElementById("newDue");
+const amountInput = document.getElementById("amount");
+const transactionTypeInput = document.getElementById("transactionType");
+const remarksInput = document.getElementById("remarks");
 const dateInput = document.getElementById("date");
 const addBtn = document.getElementById("addBtn");
 const recordList = document.getElementById("recordList");
@@ -16,9 +16,9 @@ const totalDebt = document.getElementById("totalDebt");
 const editModal = document.getElementById("editModal");
 const editName = document.getElementById("editName");
 const editMobile = document.getElementById("editMobile");
-const editPreviousDue = document.getElementById("editPreviousDue");
-const editPaymentAmount = document.getElementById("editPaymentAmount");
-const editNewDue = document.getElementById("editNewDue");
+const editAmount = document.getElementById("editAmount");
+const editTransactionType = document.getElementById("editTransactionType");
+const editRemarks = document.getElementById("editRemarks");
 const editDate = document.getElementById("editDate");
 const updateBtn = document.getElementById("updateBtn");
 const cancelBtn = document.getElementById("cancelBtn");
@@ -53,7 +53,7 @@ function setupEventListeners() {
   addBtn.addEventListener("click", saveRecord);
   clearAll.addEventListener("click", clearRecords);
   searchInput.addEventListener("input", filterRecords);
-  exportBtn.addEventListener("click", exportToCSV);
+  exportBtn.addEventListener("click", exportToExcel);
   updateBtn.addEventListener("click", updateRecord);
   cancelBtn.addEventListener("click", closeModal);
   closeBtn.addEventListener("click", closeModal);
@@ -74,9 +74,34 @@ function setupEventListeners() {
   });
 }
 
+function calculateRunningBalance(records) {
+  // Group by customer
+  const customerBalances = {};
+  
+  records.forEach(rec => {
+    const key = `${rec.name}_${rec.mobile}`;
+    if (!customerBalances[key]) {
+      customerBalances[key] = 0;
+    }
+    
+    if (rec.type === 'credit') {
+      customerBalances[key] += rec.amount;
+    } else {
+      customerBalances[key] -= rec.amount;
+    }
+    
+    rec.runningBalance = customerBalances[key];
+  });
+  
+  return records;
+}
+
 function loadRecords() {
   recordList.innerHTML = "";
-  const records = JSON.parse(localStorage.getItem("records")) || [];
+  let records = JSON.parse(localStorage.getItem("records")) || [];
+  
+  // Calculate running balances
+  records = calculateRunningBalance(records);
   
   // Apply sorting
   const sortedRecords = sortRecords(records, sortState.column, sortState.direction);
@@ -102,19 +127,26 @@ function loadRecords() {
 
   filteredRecords.forEach((rec, index) => {
     const originalIndex = records.findIndex(r => 
-      r.date === rec.date && r.name === rec.name && r.mobile === rec.mobile && r.previousDue === rec.previousDue
+      r.date === rec.date && 
+      r.name === rec.name && 
+      r.mobile === rec.mobile && 
+      r.amount === rec.amount && 
+      r.type === rec.type &&
+      r.id === rec.id
     );
     
-    const totalRemaining = rec.previousDue + rec.newDue - rec.paymentAmount;
     const row = document.createElement("tr");
+    const typeClass = rec.type === 'credit' ? 'credit-type' : 'payment-type';
+    const balanceClass = rec.runningBalance > 0 ? 'balance-negative' : rec.runningBalance < 0 ? 'balance-positive' : '';
+    
     row.innerHTML = `
       <td>${formatDate(rec.date)}</td>
       <td>${rec.name}</td>
       <td>${rec.mobile}</td>
-      <td class="previous-due">₹${rec.previousDue}</td>
-      <td class="payment">₹${rec.paymentAmount}</td>
-      <td class="new-due">₹${rec.newDue}</td>
-      <td class="new-due"><strong>₹${totalRemaining}</strong></td>
+      <td class="${typeClass}"><strong>${rec.type === 'credit' ? 'UDHAR' : 'JAMA'}</strong></td>
+      <td class="${rec.type === 'credit' ? 'new-due' : 'payment'}">₹${rec.amount}</td>
+      <td class="${balanceClass}"><strong>₹${rec.runningBalance}</strong></td>
+      <td>${rec.remarks || '-'}</td>
       <td>
         <button class="editBtn" onclick="openEditModal(${originalIndex})">
           <i class="fas fa-edit"></i>
@@ -132,15 +164,18 @@ function sortRecords(records, column, direction) {
   return records.slice().sort((a, b) => {
     let aVal, bVal;
 
-    if (column === 'totalRemaining') {
-      aVal = a.previousDue + a.newDue - a.paymentAmount;
-      bVal = b.previousDue + b.newDue - b.paymentAmount;
+    if (column === 'balance') {
+      aVal = a.runningBalance;
+      bVal = b.runningBalance;
     } else if (column === 'date') {
       aVal = new Date(a[column]);
       bVal = new Date(b[column]);
-    } else if (column === 'previousDue' || column === 'paymentAmount' || column === 'newDue') {
+    } else if (column === 'amount') {
       aVal = parseFloat(a[column]);
       bVal = parseFloat(b[column]);
+    } else if (column === 'type') {
+      aVal = a[column];
+      bVal = b[column];
     } else {
       aVal = a[column];
       bVal = b[column];
@@ -178,24 +213,25 @@ function handleSort(column) {
 function saveRecord() {
   const name = nameInput.value.trim().toUpperCase();
   const mobile = mobileInput.value.trim();
-  const previousDue = parseFloat(previousDueInput.value) || 0;
-  const paymentAmount = parseFloat(paymentAmountInput.value) || 0;
-  const newDue = parseFloat(newDueInput.value) || 0;
+  const amount = parseFloat(amountInput.value) || 0;
+  const type = transactionTypeInput.value;
+  const remarks = remarksInput.value.trim();
   const date = dateInput.value;
 
-  if (!name || !mobile || !date) {
-    showNotification("Please fill all required fields (Name, Mobile, Date)!", "error");
+  if (!name || !mobile || !date || amount <= 0) {
+    showNotification("Please fill all required fields (Name, Mobile, Date, Amount)!", "error");
     return;
   }
 
   const records = JSON.parse(localStorage.getItem("records")) || [];
-  records.push({ name, mobile, previousDue, paymentAmount, newDue, date });
+  const id = Date.now() + Math.random(); // Unique ID for each transaction
+  records.push({ id, name, mobile, amount, type, remarks, date });
   localStorage.setItem("records", JSON.stringify(records));
   
   clearForm();
   loadRecords();
   updateSummary();
-  showNotification("Record added successfully!", "success");
+  showNotification("Transaction added successfully!", "success");
 }
 
 function updateRecord() {
@@ -203,35 +239,43 @@ function updateRecord() {
 
   const name = editName.value.trim().toUpperCase();
   const mobile = editMobile.value.trim();
-  const previousDue = parseFloat(editPreviousDue.value) || 0;
-  const paymentAmount = parseFloat(editPaymentAmount.value) || 0;
-  const newDue = parseFloat(editNewDue.value) || 0;
+  const amount = parseFloat(editAmount.value) || 0;
+  const type = editTransactionType.value;
+  const remarks = editRemarks.value.trim();
   const date = editDate.value;
 
-  if (!name || !mobile || !date) {
+  if (!name || !mobile || !date || amount <= 0) {
     showNotification("Please fill all required fields!", "error");
     return;
   }
 
   const records = JSON.parse(localStorage.getItem("records")) || [];
-  records[currentEditIndex] = { name, mobile, previousDue, paymentAmount, newDue, date };
+  records[currentEditIndex] = { 
+    ...records[currentEditIndex],
+    name, 
+    mobile, 
+    amount, 
+    type, 
+    remarks, 
+    date 
+  };
   localStorage.setItem("records", JSON.stringify(records));
   
   closeModal();
   loadRecords();
   updateSummary();
-  showNotification("Record updated successfully!", "success");
+  showNotification("Transaction updated successfully!", "success");
 }
 
 function deleteRecord(index) {
-  if (!confirm("Are you sure you want to delete this record?")) return;
+  if (!confirm("Are you sure you want to delete this transaction?")) return;
 
   const records = JSON.parse(localStorage.getItem("records")) || [];
   records.splice(index, 1);
   localStorage.setItem("records", JSON.stringify(records));
   loadRecords();
   updateSummary();
-  showNotification("Record deleted successfully!", "success");
+  showNotification("Transaction deleted successfully!", "success");
 }
 
 function openEditModal(index) {
@@ -240,9 +284,9 @@ function openEditModal(index) {
   
   editName.value = record.name;
   editMobile.value = record.mobile;
-  editPreviousDue.value = record.previousDue;
-  editPaymentAmount.value = record.paymentAmount;
-  editNewDue.value = record.newDue;
+  editAmount.value = record.amount;
+  editTransactionType.value = record.type;
+  editRemarks.value = record.remarks || '';
   editDate.value = record.date;
   
   currentEditIndex = index;
@@ -267,48 +311,162 @@ function filterRecords() {
   loadRecords();
 }
 
-function exportToCSV() {
+function exportToExcel() {
   const records = JSON.parse(localStorage.getItem("records")) || [];
   if (records.length === 0) {
     showNotification("No records to export!", "error");
     return;
   }
 
-  let csv = "Date,Customer Name,Mobile Number,Previous Due,Payment Amount,New Due,Total Remaining\n";
+  // Calculate running balances
+  const recordsWithBalance = calculateRunningBalance(records);
+
+  // Create Excel-compatible HTML table with inline styles
+  let html = `
+    <html xmlns:x="urn:schemas-microsoft-com:office:excel">
+    <head>
+      <meta charset="UTF-8">
+      <xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>Customer Ledger</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <style>
+        table { 
+          border-collapse: collapse; 
+          width: 100%; 
+          font-family: Arial, sans-serif;
+        }
+        th { 
+          background-color: #2c3e50; 
+          color: white; 
+          font-weight: bold; 
+          text-align: center;
+          padding: 12px;
+          border: 1px solid #000;
+        }
+        td { 
+          text-align: center; 
+          padding: 10px;
+          border: 1px solid #000;
+        }
+        .header { 
+          background-color: #34495e; 
+          color: white; 
+          font-size: 18px; 
+          font-weight: bold; 
+          text-align: center;
+          padding: 15px;
+        }
+        .credit { color: #e74c3c; font-weight: bold; }
+        .payment { color: #27ae60; font-weight: bold; }
+        .balance-negative { color: #e74c3c; font-weight: bold; }
+        .balance-positive { color: #27ae60; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <div class="header">HAJI PROVISION STORE - CUSTOMER LEDGER</div>
+      <br>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer Name</th>
+            <th>Mobile Number</th>
+            <th>Transaction Type</th>
+            <th>Amount (₹)</th>
+            <th>Balance (₹)</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
   
-  records.forEach(rec => {
-    const totalRemaining = rec.previousDue + rec.newDue - rec.paymentAmount;
-    csv += `"${formatDate(rec.date)}","${rec.name}","${rec.mobile}","${rec.previousDue}","${rec.paymentAmount}","${rec.newDue}","${totalRemaining}"\n`;
+  recordsWithBalance.forEach(rec => {
+    const typeClass = rec.type === 'credit' ? 'credit' : 'payment';
+    const balanceClass = rec.runningBalance > 0 ? 'balance-negative' : rec.runningBalance < 0 ? 'balance-positive' : '';
+    const typeText = rec.type === 'credit' ? 'UDHAR' : 'JAMA';
+    
+    html += `
+      <tr>
+        <td>${formatDate(rec.date)}</td>
+        <td>${rec.name}</td>
+        <td>${rec.mobile}</td>
+        <td class="${typeClass}">${typeText}</td>
+        <td class="${typeClass}">${rec.amount}</td>
+        <td class="${balanceClass}">${rec.runningBalance}</td>
+        <td>${rec.remarks || '-'}</td>
+      </tr>
+    `;
   });
 
-  const blob = new Blob([csv], { type: 'text/csv' });
+  html += `
+        </tbody>
+      </table>
+      <br>
+      <div style="text-align: center; font-weight: bold; font-size: 14px;">
+        Generated on: ${new Date().toLocaleString('en-IN')}
+      </div>
+    </body>
+    </html>
+  `;
+
+  // Create Blob and download
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `haji_provision_store_${new Date().toISOString().split('T')[0]}.csv`;
+  a.download = `Haji_Provision_Store_Ledger_${new Date().toISOString().split('T')[0]}.xls`;
   a.click();
   window.URL.revokeObjectURL(url);
   
-  showNotification("CSV file downloaded successfully!", "success");
+  showNotification("Excel file downloaded successfully!", "success");
 }
 
 function updateSummary() {
   const records = JSON.parse(localStorage.getItem("records")) || [];
-  const total = records.length;
-  const totalOutstanding = records.reduce((sum, rec) => {
-    return sum + (rec.previousDue + rec.newDue - rec.paymentAmount);
+  
+  // Get unique customers
+  const uniqueCustomers = new Set();
+  records.forEach(rec => {
+    uniqueCustomers.add(`${rec.name}_${rec.mobile}`);
+  });
+  
+  // Calculate total outstanding
+  const customerBalances = {};
+  records.forEach(rec => {
+    const key = `${rec.name}_${rec.mobile}`;
+    if (!customerBalances[key]) {
+      customerBalances[key] = 0;
+    }
+    if (rec.type === 'credit') {
+      customerBalances[key] += rec.amount;
+    } else {
+      customerBalances[key] -= rec.amount;
+    }
+  });
+  
+  const totalOutstanding = Object.values(customerBalances).reduce((sum, balance) => {
+    return sum + (balance > 0 ? balance : 0);
   }, 0);
 
-  totalCustomers.textContent = total;
+  totalCustomers.textContent = uniqueCustomers.size;
   totalDebt.textContent = `₹${totalOutstanding}`;
 }
 
 function clearForm() {
   nameInput.value = "";
   mobileInput.value = "";
-  previousDueInput.value = "0";
-  paymentAmountInput.value = "0";
-  newDueInput.value = "0";
+  amountInput.value = "0";
+  transactionTypeInput.value = "credit";
+  remarksInput.value = "";
   dateInput.valueAsDate = new Date();
 }
 
@@ -326,6 +484,10 @@ function showNotification(message, type) {
     notification.style.display = 'none';
   }, 3000);
 }
+
+// Make functions global for onclick handlers
+window.openEditModal = openEditModal;
+window.deleteRecord = deleteRecord;
 
 // Initialize app
 init();
