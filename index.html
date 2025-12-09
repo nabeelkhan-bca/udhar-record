@@ -3,308 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Haji Provision Store - Excel Export</title>
+  <title>Haji Provision Store - Customer Records</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #2c3e50, #34495e);
-      color: white;
-      padding: 30px;
-      text-align: center;
-    }
-
-    .header h1 {
-      font-size: 2.5em;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-    }
-
-    .summary-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .card i {
-      font-size: 2em;
-      opacity: 0.8;
-    }
-
-    .card h3 {
-      font-size: 0.9em;
-      opacity: 0.8;
-      margin-bottom: 5px;
-    }
-
-    .card span {
-      font-size: 1.5em;
-      font-weight: bold;
-    }
-
-    .form-container {
-      padding: 30px;
-      background: white;
-      margin: 20px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-container h2 {
-      color: #2c3e50;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .form {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-    }
-
-    .input-group {
-      position: relative;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #e1e8ed;
-      border-radius: 10px;
-      font-size: 16px;
-      background: #f8f9fa;
-      transition: all 0.3s ease;
-    }
-
-    .input-group input:focus {
-      border-color: #3498db;
-      background: white;
-      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-      outline: none;
-    }
-
-    .input-group label {
-      position: absolute;
-      left: 15px;
-      top: -10px;
-      color: #3498db;
-      font-size: 12px;
-      background: white;
-      padding: 0 5px;
-    }
-
-    .glow-btn {
-      background: linear-gradient(135deg, #00b09b, #96c93d);
-      color: white;
-      border: none;
-      padding: 15px 25px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      grid-column: 1 / -1;
-    }
-
-    .glow-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(0, 176, 155, 0.3);
-    }
-
-    .table-container {
-      padding: 30px;
-      background: white;
-      margin: 20px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-container h2 {
-      color: #2c3e50;
-      margin-bottom: 20px;
-    }
-
-    .search-bar {
-      position: relative;
-      margin-bottom: 20px;
-      max-width: 400px;
-    }
-
-    .search-bar i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #7f8c8d;
-    }
-
-    .search-bar input {
-      width: 100%;
-      padding: 15px 15px 15px 45px;
-      border: 2px solid #e1e8ed;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-      border-radius: 10px;
-      border: 1px solid #e1e8ed;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 1000px;
-    }
-
-    th {
-      background: #34495e;
-      color: white;
-      padding: 15px;
-      text-align: left;
-      font-weight: 600;
-    }
-
-    td {
-      padding: 15px;
-      border-bottom: 1px solid #e1e8ed;
-    }
-
-    tr:hover td {
-      background: #f8f9fa;
-    }
-
-    .previous-due {
-      color: #e74c3c;
-      font-weight: bold;
-    }
-
-    .payment {
-      color: #27ae60;
-      font-weight: bold;
-    }
-
-    .new-due {
-      color: #e67e22;
-      font-weight: bold;
-    }
-
-    .editBtn, .deleteBtn {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin: 0 2px;
-    }
-
-    .editBtn {
-      background: #3498db;
-      color: white;
-    }
-
-    .deleteBtn {
-      background: #e74c3c;
-      color: white;
-    }
-
-    .actions {
-      padding: 20px 30px;
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      background: #f8f9fa;
-    }
-
-    .danger-btn {
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .export-btn {
-      background: linear-gradient(135deg, #9b59b6, #8e44ad);
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .notification {
-      display: none;
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 25px;
-      border-radius: 10px;
-      color: white;
-      font-weight: bold;
-      z-index: 1001;
-    }
-
-    .notification.success {
-      background: linear-gradient(135deg, #27ae60, #2ecc71);
-    }
-
-    .notification.error {
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -325,64 +26,153 @@
             <span id="totalDebt">₹0</span>
           </div>
         </div>
+        <div class="card credit">
+          <i class="fas fa-arrow-up"></i>
+          <div>
+            <h3>Total Credit</h3>
+            <span id="totalCredit">₹0</span>
+          </div>
+        </div>
+        <div class="card debit">
+          <i class="fas fa-arrow-down"></i>
+          <div>
+            <h3>Total Debit</h3>
+            <span id="totalDebit">₹0</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="form-container">
-      <h2><i class="fas fa-plus-circle"></i> Add New Record</h2>
-      <div class="form">
-        <div class="input-group">
-          <label for="date">Date</label>
-          <input type="date" id="date">
-        </div>
-        <div class="input-group">
-          <label for="name">Customer Name</label>
-          <input type="text" id="name" placeholder="Enter name">
-        </div>
-        <div class="input-group">
-          <label for="mobile">Mobile Number</label>
-          <input type="text" id="mobile" placeholder="Enter mobile">
-        </div>
-        <div class="input-group">
-          <label for="previousDue">Previous Due (₹)</label>
-          <input type="number" id="previousDue" value="0">
-        </div>
-        <div class="input-group">
-          <label for="paymentAmount">Payment Amount (₹)</label>
-          <input type="number" id="paymentAmount" value="0">
-        </div>
-        <div class="input-group">
-          <label for="newDue">New Due (₹)</label>
-          <input type="number" id="newDue" value="0">
-        </div>
-        <button id="addBtn" class="glow-btn">
-          <i class="fas fa-plus"></i> Add Record
+    <!-- Tab Navigation -->
+    <div class="tab-container">
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="new-entry">
+          <i class="fas fa-plus-circle"></i> New Entry
+        </button>
+        <button class="tab-btn" data-tab="customer-records">
+          <i class="fas fa-list"></i> Customer Records
+        </button>
+        <button class="tab-btn" data-tab="transaction-history">
+          <i class="fas fa-history"></i> Transaction History
         </button>
       </div>
-    </div>
 
-    <div class="table-container">
-      <h2><i class="fas fa-list"></i> Customer Records</h2>
-      <div class="search-bar">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Search customers...">
+      <!-- New Entry Tab -->
+      <div id="new-entry" class="tab-content active">
+        <div class="form-container">
+          <h2><i class="fas fa-plus-circle"></i> Add New Transaction</h2>
+          <div class="form">
+            <div class="input-group">
+              <input type="date" id="date" value="">
+              <label for="date">Date</label>
+            </div>
+            <div class="input-group">
+              <input type="text" id="name" placeholder=" " list="customerList">
+              <label for="name">Customer Name</label>
+              <datalist id="customerList"></datalist>
+            </div>
+            <div class="input-group">
+              <input type="text" id="mobile" placeholder=" ">
+              <label for="mobile">Mobile Number</label>
+            </div>
+            <div class="input-group">
+              <select id="transactionType">
+                <option value="credit">Credit (Purchase)</option>
+                <option value="debit">Debit (Payment)</option>
+              </select>
+              <label for="transactionType">Transaction Type</label>
+            </div>
+            <div class="input-group">
+              <input type="number" id="amount" placeholder=" " value="0">
+              <label for="amount">Amount (₹)</label>
+            </div>
+            <div class="input-group">
+              <input type="text" id="description" placeholder=" ">
+              <label for="description">Description</label>
+            </div>
+            <div class="input-group">
+              <input type="number" id="previousDue" placeholder=" " value="0" readonly>
+              <label for="previousDue">Previous Due (₹)</label>
+            </div>
+            <div class="input-group">
+              <input type="number" id="newDue" placeholder=" " value="0" readonly>
+              <label for="newDue">New Due (₹)</label>
+            </div>
+            <button id="addBtn" class="glow-btn">
+              <i class="fas fa-plus"></i> Add Transaction
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Customer Name</th>
-              <th>Mobile Number</th>
-              <th>Previous Due</th>
-              <th>Payment Amount</th>
-              <th>New Due</th>
-              <th>Total Remaining</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="recordList"></tbody>
-        </table>
+
+      <!-- Customer Records Tab -->
+      <div id="customer-records" class="tab-content">
+        <div class="table-container">
+          <h2><i class="fas fa-list"></i> Customer Records</h2>
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search customers...">
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="name">Customer Name <i class="fas fa-sort"></i></th>
+                  <th data-sort="mobile">Mobile Number <i class="fas fa-sort"></i></th>
+                  <th data-sort="totalCredit">Total Credit <i class="fas fa-sort"></i></th>
+                  <th data-sort="totalDebit">Total Debit <i class="fas fa-sort"></i></th>
+                  <th data-sort="balance">Balance <i class="fas fa-sort"></i></th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recordList"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction History Tab -->
+      <div id="transaction-history" class="tab-content">
+        <div class="table-container">
+          <h2><i class="fas fa-history"></i> Transaction History</h2>
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label for="historyCustomerFilter">Customer:</label>
+              <select id="historyCustomerFilter">
+                <option value="">All Customers</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="historyDateFilter">Date:</label>
+              <input type="date" id="historyDateFilter">
+            </div>
+            <div class="filter-group">
+              <label for="historyTypeFilter">Type:</label>
+              <select id="historyTypeFilter">
+                <option value="">All Types</option>
+                <option value="credit">Credit</option>
+                <option value="debit">Debit</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="date">Date <i class="fas fa-sort"></i></th>
+                  <th data-sort="name">Customer Name <i class="fas fa-sort"></i></th>
+                  <th data-sort="mobile">Mobile Number <i class="fas fa-sort"></i></th>
+                  <th data-sort="type">Type <i class="fas fa-sort"></i></th>
+                  <th data-sort="amount">Amount <i class="fas fa-sort"></i></th>
+                  <th>Description</th>
+                  <th data-sort="balance">Balance <i class="fas fa-sort"></i></th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="transactionList"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -391,247 +181,59 @@
         <i class="fas fa-trash"></i> Delete All Records
       </button>
       <button id="exportBtn" class="export-btn">
-        <i class="fas fa-file-excel"></i> Export to Excel
+        <i class="fas fa-download"></i> Export to CSV
       </button>
+      <button id="exportTransactionsBtn" class="export-btn">
+        <i class="fas fa-download"></i> Export Transactions
+      </button>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Transaction</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <input type="date" id="editDate">
+          <label for="editDate">Date</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="editName" placeholder=" ">
+          <label for="editName">Customer Name</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="editMobile" placeholder=" ">
+          <label for="editMobile">Mobile Number</label>
+        </div>
+        <div class="input-group">
+          <select id="editTransactionType">
+            <option value="credit">Credit (Purchase)</option>
+            <option value="debit">Debit (Payment)</option>
+          </select>
+          <label for="editTransactionType">Transaction Type</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="editAmount" placeholder=" ">
+          <label for="editAmount">Amount (₹)</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="editDescription" placeholder=" ">
+          <label for="editDescription">Description</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="updateBtn" class="glow-btn">Update Transaction</button>
+        <button id="cancelBtn" class="cancel-btn">Cancel</button>
+      </div>
     </div>
   </div>
 
   <div class="notification" id="notification"></div>
 
-  <script>
-    const dateInput = document.getElementById("date");
-    const nameInput = document.getElementById("name");
-    const mobileInput = document.getElementById("mobile");
-    const previousDueInput = document.getElementById("previousDue");
-    const paymentAmountInput = document.getElementById("paymentAmount");
-    const newDueInput = document.getElementById("newDue");
-    const addBtn = document.getElementById("addBtn");
-    const recordList = document.getElementById("recordList");
-    const clearAll = document.getElementById("clearAll");
-    const searchInput = document.getElementById("searchInput");
-    const exportBtn = document.getElementById("exportBtn");
-    const totalCustomers = document.getElementById("totalCustomers");
-    const totalDebt = document.getElementById("totalDebt");
-    const notification = document.getElementById("notification");
-
-    dateInput.valueAsDate = new Date();
-
-    nameInput.addEventListener('input', function() {
-      this.value = this.value.toUpperCase();
-    });
-
-    loadRecords();
-    updateSummary();
-
-    addBtn.addEventListener("click", () => {
-      const name = nameInput.value.trim().toUpperCase();
-      const mobile = mobileInput.value.trim();
-      const previousDue = parseFloat(previousDueInput.value) || 0;
-      const paymentAmount = parseFloat(paymentAmountInput.value) || 0;
-      const newDue = parseFloat(newDueInput.value) || 0;
-      const date = dateInput.value;
-
-      if (!name || !mobile || !date) {
-        showNotification("Please fill all required fields!", "error");
-        return;
-      }
-
-      const records = JSON.parse(localStorage.getItem("records")) || [];
-      records.push({ name, mobile, previousDue, paymentAmount, newDue, date });
-      localStorage.setItem("records", JSON.stringify(records));
-      
-      clearForm();
-      loadRecords();
-      updateSummary();
-      showNotification("Record added successfully!", "success");
-    });
-
-    function loadRecords() {
-      recordList.innerHTML = "";
-      const records = JSON.parse(localStorage.getItem("records")) || [];
-      
-      const searchTerm = searchInput.value.toLowerCase();
-      const filteredRecords = records.filter(rec => 
-        rec.name.toLowerCase().includes(searchTerm) || 
-        rec.mobile.includes(searchTerm)
-      );
-
-      filteredRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      filteredRecords.forEach((rec) => {
-        const totalRemaining = rec.previousDue + rec.newDue - rec.paymentAmount;
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${formatDate(rec.date)}</td>
-          <td>${rec.name}</td>
-          <td>${rec.mobile}</td>
-          <td class="previous-due">₹${rec.previousDue}</td>
-          <td class="payment">₹${rec.paymentAmount}</td>
-          <td class="new-due">₹${rec.newDue}</td>
-          <td class="new-due"><strong>₹${totalRemaining}</strong></td>
-          <td>
-            <button class="editBtn"><i class="fas fa-edit"></i></button>
-            <button class="deleteBtn"><i class="fas fa-trash"></i></button>
-          </td>
-        `;
-        recordList.appendChild(row);
-      });
-    }
-
-    clearAll.addEventListener("click", () => {
-      if (!confirm("Delete all records?")) return;
-      localStorage.removeItem("records");
-      loadRecords();
-      updateSummary();
-      showNotification("All records deleted!", "success");
-    });
-
-    searchInput.addEventListener("input", loadRecords);
-
-    // EXCEL EXPORT WITH AUTO-FORMATTING
-    exportBtn.addEventListener("click", () => {
-      const records = JSON.parse(localStorage.getItem("records")) || [];
-      if (records.length === 0) {
-        showNotification("No records to export!", "error");
-        return;
-      }
-
-      // Create HTML table for Excel with styling
-      let html = `
-        <html xmlns:x="urn:schemas-microsoft-com:office:excel">
-        <head>
-          <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
-          <xml>
-            <x:ExcelWorkbook>
-              <x:ExcelWorksheets>
-                <x:ExcelWorksheet>
-                  <x:Name>Customer Records</x:Name>
-                  <x:WorksheetOptions>
-                    <x:Print>
-                      <x:ValidPrinterInfo/>
-                    </x:Print>
-                  </x:WorksheetOptions>
-                </x:ExcelWorksheet>
-              </x:ExcelWorksheets>
-            </x:ExcelWorkbook>
-          </xml>
-          <style>
-            table {
-              border-collapse: collapse;
-              width: 100%;
-            }
-            th {
-              background-color: #34495e;
-              color: white;
-              font-weight: bold;
-              padding: 12px;
-              text-align: center;
-              border: 1px solid #000;
-              font-size: 14px;
-            }
-            td {
-              padding: 10px;
-              text-align: center;
-              border: 1px solid #ccc;
-              font-size: 13px;
-            }
-            .header-row {
-              font-weight: bold;
-              background-color: #34495e;
-              color: white;
-            }
-            .money {
-              text-align: right;
-            }
-          </style>
-        </head>
-        <body>
-          <table border="1">
-            <thead>
-              <tr class="header-row">
-                <th width="120">Date</th>
-                <th width="200">Customer Name</th>
-                <th width="150">Mobile Number</th>
-                <th width="120">Previous Due</th>
-                <th width="140">Payment Amount</th>
-                <th width="120">New Due</th>
-                <th width="140">Total Remaining</th>
-              </tr>
-            </thead>
-            <tbody>
-      `;
-
-      records.forEach(rec => {
-        const totalRemaining = rec.previousDue + rec.newDue - rec.paymentAmount;
-        html += `
-          <tr>
-            <td>${formatDate(rec.date)}</td>
-            <td>${rec.name}</td>
-            <td>${rec.mobile}</td>
-            <td class="money">₹${rec.previousDue}</td>
-            <td class="money">₹${rec.paymentAmount}</td>
-            <td class="money">₹${rec.newDue}</td>
-            <td class="money"><strong>₹${totalRemaining}</strong></td>
-          </tr>
-        `;
-      });
-
-      html += `
-            </tbody>
-          </table>
-        </body>
-        </html>
-      `;
-
-      // Create blob and download
-      const blob = new Blob([html], { 
-        type: 'application/vnd.ms-excel'
-      });
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Haji_Provision_Store_${new Date().toISOString().split('T')[0]}.xls`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      
-      showNotification("Excel file downloaded with auto-formatting!", "success");
-    });
-
-    function updateSummary() {
-      const records = JSON.parse(localStorage.getItem("records")) || [];
-      const uniqueCustomers = new Set(records.map(r => `${r.name}-${r.mobile}`));
-      const totalOutstanding = records.reduce((sum, rec) => {
-        return sum + (rec.previousDue + rec.newDue - rec.paymentAmount);
-      }, 0);
-
-      totalCustomers.textContent = uniqueCustomers.size;
-      totalDebt.textContent = `₹${totalOutstanding}`;
-    }
-
-    function clearForm() {
-      nameInput.value = "";
-      mobileInput.value = "";
-      previousDueInput.value = "0";
-      paymentAmountInput.value = "0";
-      newDueInput.value = "0";
-      dateInput.valueAsDate = new Date();
-    }
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-IN');
-    }
-
-    function showNotification(message, type) {
-      notification.textContent = message;
-      notification.className = `notification ${type}`;
-      notification.style.display = 'block';
-      
-      setTimeout(() => {
-        notification.style.display = 'none';
-      }, 3000);
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
