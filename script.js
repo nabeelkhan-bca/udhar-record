@@ -282,7 +282,7 @@ function exportToCSV() {
 function updateSummary() {
   const records = JSON.parse(localStorage.getItem("records")) || [];
   const total = records.length;
-  const totalUdhar = records.reduce((sum, rec) => sum + rec.udharAmount, 0);
+  const totalUdhar = records.reduce((sum, rec) => sum - rec.udharAmount, 0) ;
   const totalCredit = records.reduce((sum, rec) => sum + rec.creditAmount, 0);
   const netBalance = totalUdhar - totalCredit;
 
