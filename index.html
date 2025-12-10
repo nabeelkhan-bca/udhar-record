@@ -1,62 +1,326 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Udhar Manager – Material UI</title>
+    <title>Customer Ledger - ग्राहक खाता बही</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-    <header>
-        <h1>📘 Udhar Manager</h1>
-        <p>Material You Inspired Modern Ledger System</p>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="logo">
+                        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Customer Ledger
+                    </h1>
+                    <p class="tagline">पूर्ण खाता बही प्रबंधन</p>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="printLedger()" title="Print Ledger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect x="6" y="14" width="12" height="8"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="exportData()" title="Export Data">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
+                    <label class="icon-btn" title="Import Data">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                    </label>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Add Entry Card -->
-    <div class="card">
-        <h2>Add New Entry</h2>
+    <main class="container">
+        <!-- Main Dashboard View -->
+        <div id="dashboardView">
+            <!-- Search & Add Section -->
+            <div class="search-section">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="नाम, मोबाइल, या तारीख से खोजें..." oninput="filterCustomers()">
+                </div>
+                <button class="btn-primary" onclick="showAddCustomerModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    नया ग्राहक
+                </button>
+            </div>
 
-        <input id="customer" type="text" placeholder="Customer Name">
-        <input id="mobile" type="text" placeholder="Mobile Number">
-        <input id="date" type="date">
-        <input id="amount" type="number" placeholder="Amount (₹)">
-        
-        <select id="type">
-            <option value="credit">Credit (+)</option>
-            <option value="debit">Debit (–)</option>
-        </select>
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card stat-blue">
+                    <div class="stat-content">
+                        <div>
+                            <p class="stat-label">कुल ग्राहक</p>
+                            <p class="stat-value" id="totalCustomers">0</p>
+                        </div>
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-card stat-green">
+                    <div class="stat-content">
+                        <div>
+                            <p class="stat-label">कुल जमा (Credit)</p>
+                            <p class="stat-value stat-green-text" id="totalCredit">₹0</p>
+                        </div>
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-card stat-red">
+                    <div class="stat-content">
+                        <div>
+                            <p class="stat-label">कुल नामे (Debit)</p>
+                            <p class="stat-value stat-red-text" id="totalDebit">₹0</p>
+                        </div>
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-card stat-purple">
+                    <div class="stat-content">
+                        <div>
+                            <p class="stat-label">कुल बैलेंस</p>
+                            <p class="stat-value" id="netBalance">₹0</p>
+                        </div>
+                        <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-        <textarea id="note" placeholder="Note (optional)"></textarea>
+            <!-- Customer Cards -->
+            <div id="customerGrid" class="customer-grid"></div>
+        </div>
 
-        <button onclick="addEntry()">Add Entry</button>
+        <!-- Ledger Detail View -->
+        <div id="ledgerView" style="display: none;">
+            <button class="btn-back" onclick="showDashboard()">← वापस जाएं</button>
+            
+            <!-- Customer Info Card -->
+            <div class="ledger-header-card">
+                <div class="ledger-customer-info">
+                    <div class="customer-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 id="ledgerCustomerName"></h2>
+                        <p id="ledgerCustomerMobile" class="customer-contact"></p>
+                        <p id="ledgerCustomerAddress" class="customer-contact"></p>
+                    </div>
+                </div>
+                <div class="ledger-actions">
+                    <button class="btn-secondary" onclick="showAddEntryModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        नई एंट्री
+                    </button>
+                    <button class="btn-secondary" onclick="printCustomerLedger()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect x="6" y="14" width="12" height="8"/>
+                        </svg>
+                        Print
+                    </button>
+                </div>
+            </div>
+
+            <!-- Balance Summary -->
+            <div class="balance-summary">
+                <div class="balance-item balance-credit">
+                    <p class="balance-label">कुल जमा (Credit)</p>
+                    <p class="balance-amount" id="customerTotalCredit">₹0</p>
+                </div>
+                <div class="balance-item balance-debit">
+                    <p class="balance-label">कुल नामे (Debit)</p>
+                    <p class="balance-amount" id="customerTotalDebit">₹0</p>
+                </div>
+                <div class="balance-item balance-net">
+                    <p class="balance-label">शेष राशि (Balance)</p>
+                    <p class="balance-amount" id="customerBalance">₹0</p>
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="date-filter">
+                <div class="filter-group">
+                    <label>From:</label>
+                    <input type="date" id="filterFromDate" onchange="filterLedgerByDate()">
+                </div>
+                <div class="filter-group">
+                    <label>To:</label>
+                    <input type="date" id="filterToDate" onchange="filterLedgerByDate()">
+                </div>
+                <button class="btn-filter" onclick="clearDateFilter()">Clear Filter</button>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="ledger-table-container">
+                <table class="ledger-table" id="ledgerTable">
+                    <thead>
+                        <tr>
+                            <th>तारीख</th>
+                            <th>विवरण</th>
+                            <th class="text-right">नामे (Debit)</th>
+                            <th class="text-right">जमा (Credit)</th>
+                            <th class="text-right">शेष राशि</th>
+                            <th class="text-center">कार्य</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Customer Modal -->
+    <div id="addCustomerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>नया ग्राहक जोड़ें</h3>
+                <button class="close-btn" onclick="closeAddCustomerModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="newCustomerName" placeholder="ग्राहक का नाम *" class="input-field">
+                <input type="tel" id="newCustomerMobile" placeholder="मोबाइल नंबर *" class="input-field">
+                <input type="text" id="newCustomerAddress" placeholder="पता (वैकल्पिक)" class="input-field">
+                <input type="number" id="newCustomerOpeningBalance" placeholder="Opening Balance (₹)" class="input-field">
+                <button class="btn-primary btn-full" onclick="addCustomer()">ग्राहक जोड़ें</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Search + Filter -->
-    <div class="filterBox">
-        <input id="search" type="text" placeholder="Search customer / mobile…" oninput="renderList()">
-        <input id="fromDate" type="date" onchange="renderList()">
-        <input id="toDate" type="date" onchange="renderList()">
+    <!-- Add Entry Modal -->
+    <div id="addEntryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>नई एंट्री जोड़ें</h3>
+                <button class="close-btn" onclick="closeAddEntryModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="entry-type-selector">
+                    <button class="type-btn active" data-type="credit" onclick="selectEntryType('credit')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                        जमा (Credit)
+                    </button>
+                    <button class="type-btn" data-type="debit" onclick="selectEntryType('debit')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                            <polyline points="17 18 23 18 23 12"/>
+                        </svg>
+                        नामे (Debit)
+                    </button>
+                </div>
+                <input type="date" id="entryDate" class="input-field">
+                <input type="number" id="entryAmount" placeholder="राशि *" class="input-field" step="0.01">
+                <textarea id="entryDescription" placeholder="विवरण (वैकल्पिक)" class="input-field" rows="3"></textarea>
+                <button class="btn-primary btn-full" onclick="addEntry()">एंट्री जोड़ें</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Total Balance -->
-    <div class="balanceBox">
-        <h2>Total Balance</h2>
-        <h1 id="balanceAmount">₹0</h1>
-    </div>
-
-    <!-- Entries List -->
-    <div id="entryList"></div>
-
-    <h2 class="sectionTitle">📄 Professional Report</h2>
-
-    <div class="card">
-        <button onclick="printReport()">🖨 Print / PDF</button>
-        <button onclick="exportJson()">⬇ Export JSON</button>
+    <!-- Edit Entry Modal -->
+    <div id="editEntryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>एंट्री एडिट करें</h3>
+                <button class="close-btn" onclick="closeEditEntryModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="entry-type-selector">
+                    <button class="type-btn" data-type="credit" onclick="selectEditEntryType('credit')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                        जमा (Credit)
+                    </button>
+                    <button class="type-btn" data-type="debit" onclick="selectEditEntryType('debit')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                            <polyline points="17 18 23 18 23 12"/>
+                        </svg>
+                        नामे (Debit)
+                    </button>
+                </div>
+                <input type="date" id="editEntryDate" class="input-field">
+                <input type="number" id="editEntryAmount" placeholder="राशि *" class="input-field" step="0.01">
+                <textarea id="editEntryDescription" placeholder="विवरण (वैकल्पिक)" class="input-field" rows="3"></textarea>
+                <div class="button-group">
+                    <button class="btn-success btn-flex" onclick="updateEntry()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        सेव करें
+                    </button>
+                    <button class="btn-secondary btn-flex" onclick="closeEditEntryModal()">रद्द करें</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
-
 </body>
 </html>
