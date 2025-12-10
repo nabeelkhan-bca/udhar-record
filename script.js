@@ -1,164 +1,142 @@
-// ===== script.js (Full Clean JS File) =====
+// ---- LocalStorage Database ----
+let entries = JSON.parse(localStorage.getItem("entries")) || [];
 
-let mode = "receive";
-let data = JSON.parse(localStorage.getItem("ledgerData") || "[]");
-
-const receiveBtn = document.getElementById("receiveBtn");
-const payBtn = document.getElementById("payBtn");
-const saveBtn = document.getElementById("saveBtn");
-const entriesDiv = document.getElementById("entries");
-const searchInput = document.getElementById("searchInput");
-
-const customerName = document.getElementById("customerName");
-const mobileInput = document.getElementById("mobile");
-const aadhaarInput = document.getElementById("aadhaar");
-const amountInput = document.getElementById("amount");
-const remarksInput = document.getElementById("remarks");
-const lastBalanceSpan = document.getElementById("lastBalance");
-
-// -------- Mode Switching (Receive / Pay) --------
-receiveBtn.onclick = () => switchMode("receive");
-payBtn.onclick = () => switchMode("pay");
-
-function switchMode(m) {
-  mode = m;
-  receiveBtn.classList.toggle("active", m === "receive");
-  payBtn.classList.toggle("active", m === "pay");
+// Save
+function saveDB() {
+    localStorage.setItem("entries", JSON.stringify(entries));
 }
 
-// -------- Get Previous Balance --------
-function getLastBalance(mobile) {
-  let list = data.filter(e => e.mobile === mobile);
-  if (list.length === 0) return 0;
-  return list[list.length - 1].balance;
+// ---- Balance Calculation (Perfect Logic) ----
+function getBalance(customer) {
+    let bal = 0;
+
+    entries
+        .filter(e => e.customer === customer)
+        .forEach(e => {
+            if (e.type === "pay") {
+                bal += Number(e.amount);      // Udhaar diya → increase
+            } else if (e.type === "receive") {
+                bal -= Number(e.amount);      // Customer ne pay kiya → decrease
+            }
+        });
+
+    return bal;
 }
 
-// -------- Render ALL Entries --------
-function render() {
-  entriesDiv.innerHTML = "";
+// ---- Add Entry ----
+document.getElementById("entryForm").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-  let filtered = data.filter(e => {
-    let q = searchInput.value.toLowerCase();
-    return (
-      e.name.toLowerCase().includes(q) ||
-      e.mobile.includes(q)
-    );
-  });
+    let date = document.getElementById("date").value;
+    let customer = document.getElementById("customer").value.trim();
+    let mobile = document.getElementById("mobile").value.trim();
+    let type = document.getElementById("type").value;
+    let amount = Number(document.getElementById("amount").value);
+    let remark = document.getElementById("remark").value;
 
-  let grouped = {};
-  filtered.forEach(e => {
-    if (!grouped[e.date]) grouped[e.date] = [];
-    grouped[e.date].push(e);
-  });
-
-  Object.keys(grouped).forEach(date => {
-    entriesDiv.innerHTML += `<div class='entry-date'>${date}</div>`;
-    grouped[date].forEach(e => {
-      entriesDiv.innerHTML += `
-        <div class='entry'>
-          <div class='type'>${(e.type === "udhar" ? "UDDHAR" : "RECEIVE")} - ₹${e.amount}</div>
-          <div>${e.name} (${e.mobile})</div>
-          <div>Balance: ₹${e.balance}</div>
-          <div>${e.remarks}</div>
-          <button class='payNow' data-id='${e.id}' style="margin-top:6px;background:#28a745;color:white;padding:4px 10px;border-radius:6px;border:none;">Pay Now</button>
-        </div>
-      `;
-    });(e => {
-      entriesDiv.innerHTML += `
-        <div class='entry'>
-          <div class='type'>${(e.type === "pay" ? "UDDHAR" : e.type.toUpperCase())()} - ₹${e.amount}</div>
-          <div>${e.name} (${e.mobile})</div>
-          <div>Balance: ₹${e.balance}</div>
-          <div>${e.remarks}</div>
-        </div>
-      `;
-    });
-  });
-}
-
-searchInput.oninput = render;
-
-// -------- Save Button Logic --------
-saveBtn.onclick = () => {
-  let name = customerName.value.trim();
-  let mobile = mobileInput.value.trim();
-  let aadhaar = aadhaarInput.value.trim();
-  let amount = Number(amountInput.value.trim());
-  let remarks = remarksInput.value.trim();
-
-  if (!name || !mobile || !amount) return alert("Please fill required fields");
-
-  let previous = getLastBalance(mobile);
-  let newBalance = mode === "receive" ? previous - amount : previous + amount;
-
-  let entry = {
-    id: Date.now(), {
-    date: new Date().toLocaleDateString(),
-    name,
-    mobile,
-    aadhaar,
-    amount,
-    type: (mode === "pay" ? "udhar" : "receive"),
-    remarks,
-    balance: newBalance
-  };
-
-  data.push(entry);
-  localStorage.setItem("ledgerData", JSON.stringify(data));
-
-  lastBalanceSpan.innerText = newBalance;
-  render();
-};
-
-// -------- Auto-fill When Mobile Changes --------
-mobileInput.oninput = () => {
-  lastBalanceSpan.innerText = getLastBalance(mobileInput.value);
-};
-
-// -------- Auto-fill When Aadhaar Matches --------
-aadhaarInput.oninput = () => {
-  if (aadhaarInput.value.length === 12) {
-    let match = data.find(e => e.aadhaar === aadhaarInput.value);
-    if (match) {
-      customerName.value = match.name;
-      mobileInput.value = match.mobile;
-      lastBalanceSpan.innerText = match.balance;
+    if (!customer || !amount) {
+        alert("Customer name & amount required");
+        return;
     }
-  }
-};
 
-// Pay Now Action
-entriesDiv.onclick = (e) => {
-  if (e.target.classList.contains('payNow')) {
-    let id = Number(e.target.getAttribute('data-id'));
-    let entry = data.find(x => x.id === id);
-    if (!entry) return;
+    // Add new entry
+    entries.push({
+        id: Date.now(),
+        date,
+        customer,
+        mobile,
+        type,
+        amount,
+        remark
+    });
 
-    let amount = prompt(`Enter amount to receive from ${entry.name}:`);
-    if (!amount) return;
-    amount = Number(amount);
-    if (amount <= 0) return alert('Invalid amount');
+    saveDB();
+    renderEntries();
+    this.reset();
+});
 
-    let previous = getLastBalance(entry.mobile);
-    let newBalance = previous - amount;
+// ---- Render All Entries ----
+function renderEntries(list = entries) {
+    let box = document.getElementById("entriesBox");
+    box.innerHTML = "";
 
-    let newEntry = {
-      id: Date.now(),
-      date: new Date().toLocaleDateString(),
-      name: entry.name,
-      mobile: entry.mobile,
-      aadhaar: entry.aadhaar,
-      amount,
-      type: "receive",
-      remarks: "Auto-pay from entry",
-      balance: newBalance
+    list.forEach((e) => {
+        let bal = getBalance(e.customer);
+
+        let card = document.createElement("div");
+        card.className = "entry-card";
+
+        card.innerHTML = `
+            <div class="entry-top">
+                <div><b>${e.customer}</b> (${e.mobile || "—"})</div>
+                <div class="date">${e.date}</div>
+            </div>
+
+            <div class="entry-middle">
+                <span class="${e.type === "pay" ? "pay" : "receive"}">${e.type.toUpperCase()}</span>
+                <span class="amount">₹${e.amount}</span>
+            </div>
+
+            <div class="remark">📝 ${e.remark || "No remark"}</div>
+
+            <div class="bal">Balance: <b>₹${bal}</b></div>
+
+            <button class="payNowBtn" onclick="openPayNow(${e.id}, '${e.customer}')">Pay Now</button>
+        `;
+
+        box.appendChild(card);
+    });
+}
+
+// ---- Pay Now Button ----
+function openPayNow(id, customer) {
+    let amt = prompt(`Customer "${customer}" kitna pay kar raha hai?`);
+
+    if (!amt || isNaN(amt)) {
+        alert("Invalid amount");
+        return;
+    }
+
+    // Add receive entry
+    entries.push({
+        id: Date.now(),
+        date: new Date().toISOString().split("T")[0],
+        customer,
+        mobile: "",
+        type: "receive",
+        amount: Number(amt),
+        remark: "Pay Now Auto Entry"
+    });
+
+    saveDB();
+    renderEntries();
+}
+
+// ---- Search ----
+document.getElementById("search").addEventListener("input", function () {
+    let q = this.value.toLowerCase();
+
+    let filtered = entries.filter(e =>
+        e.customer.toLowerCase().includes(q) ||
+        (e.mobile && e.mobile.includes(q))
+    );
+
+    renderEntries(filtered);
+});
+
+// ---- PDF Export ----
+document.getElementById("downloadPDF").addEventListener("click", () => {
+    const element = document.getElementById("entriesBox");
+
+    const opt = {
+        margin: 0.5,
+        filename: "Customer-Entries.pdf",
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "A4", orientation: "portrait" }
     };
 
-    data.push(newEntry);
-    localStorage.setItem('ledgerData', JSON.stringify(data));
-    render();
-  }
-};
+    html2pdf().from(element).set(opt).save();
+});
 
-// Initial render
-render();
+// ---- Initial Load ----
+renderEntries();
