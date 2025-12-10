@@ -1,64 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shop Ledger</title>
-  <link rel="stylesheet" href="styles.css" />
-
-  <style>
-    body { font-family: Arial; background:#f2f2f7; padding:15px; }
-    .container { max-width:500px; margin:auto; }
-    h2 { text-align:center; margin-bottom:15px; }
-
-    .mode-btns { display:flex; gap:10px; }
-    .mode-btns button {
-      flex:1; padding:10px; border:none; border-radius:8px;
-      background:#ddd; font-weight:bold; cursor:pointer;
-    }
-    .mode-btns .active { background:#007bff; color:#fff; }
-
-    .card { background:white; padding:15px; border-radius:10px; margin-top:15px; }
-    .input { width:100%; margin:8px 0; padding:10px; border-radius:6px; border:1px solid #ccc; }
-
-    .btn { width:100%; padding:12px; border:none; border-radius:8px; cursor:pointer; font-size:16px; }
-    .save { background:#28a745; color:white; }
-
-    #entries { margin-top:20px; }
-    .entry-date { font-weight:bold; margin-top:15px; }
-    .entry {
-      background:white; padding:12px; border-radius:10px; margin:10px 0;
-      border-left:5px solid #007bff;
-    }
-    .entry .type { font-weight:bold; margin-bottom:5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop Ledger App</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-<div class="container">
-  <h2>Shop Ledger</h2>
+<h2 class="title">Shop Ledger</h2>
 
-  <div class="mode-btns">
-    <button id="receiveBtn" class="active">Receive</button>
-    <button id="payBtn">Udhar</button>
-  </div>
+<!-- Entry Form -->
+<form id="entryForm" class="card">
+    <label>Date</label>
+    <input type="date" id="date" required>
 
-  <div class="card">
-    <input id="customerName" class="input" placeholder="Customer Name" />
-    <input id="mobile" class="input" placeholder="Mobile Number" />
-    <input id="aadhaar" class="input" placeholder="Aadhaar Number" />
-    <input id="amount" class="input" placeholder="Amount" type="number" />
-    <input id="remarks" class="input" placeholder="Remarks" />
+    <label>Customer Name</label>
+    <input type="text" id="customer" placeholder="Customer name" required>
 
-    <div>Last Balance: ₹<span id="lastBalance">0</span></div><br>
+    <label>Mobile</label>
+    <input type="text" id="mobile" placeholder="Mobile number">
 
-    <button id="saveBtn" class="btn save">Save Entry</button>
-  </div>
+    <label>Type</label>
+    <select id="type">
+        <option value="pay">Pay (Udhaar Diya)</option>
+        <option value="receive">Receive (Customer Pay)</option>
+    </select>
 
-  <input id="searchInput" class="input" placeholder="Search Name / Mobile" />
+    <label>Amount</label>
+    <input type="number" id="amount" placeholder="Amount" required>
 
-  <div id="entries"></div>
-</div>
+    <label>Remarks</label>
+    <input type="text" id="remark" placeholder="Note (optional)">
+
+    <button type="submit" class="btn">Save Entry</button>
+</form>
+
+<!-- Search -->
+<input id="search" class="search" placeholder="Search by name or mobile">
+
+<!-- PDF Button -->
+<button id="downloadPDF" class="pdfBtn">Download PDF</button>
+
+<!-- Entries List -->
+<div id="entriesBox"></div>
 
 <script src="script.js"></script>
 </body>
