@@ -1,76 +1,88 @@
-body {
-    font-family: Arial, sans-serif;
-    background: #f3f3f3;
-    padding: 20px;
+let entries = [];
+
+// Add new entry
+function addEntry() {
+    const name = document.getElementById("name").value;
+    const date = document.getElementById("date").value;
+    const amount = document.getElementById("amount").value;
+    const box = document.getElementById("box").value;
+    const mobile = document.getElementById("mobile").value;
+
+    if (!name || !date || !amount) {
+        alert("Please fill name, date, and amount!");
+        return;
+    }
+
+    entries.push({ 
+        id: Date.now(),
+        name,
+        date,
+        amount: Number(amount),
+        box,
+        mobile 
+    });
+
+    document.getElementById("name").value = "";
+    document.getElementById("date").value = "";
+    document.getElementById("amount").value = "";
+    document.getElementById("box").value = "";
+    document.getElementById("mobile").value = "";
+
+    renderEntries();
 }
 
-h1 {
-    text-align: center;
-    margin-bottom: 15px;
+// Render list + search + filter + total
+function renderEntries() {
+    const search = document.getElementById("search").value.toLowerCase();
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    let filtered = entries.filter((e) => {
+        const t = new Date(e.date).getTime();
+        const s = startDate ? new Date(startDate).getTime() : 0;
+        const en = endDate ? new Date(endDate).getTime() : Infinity;
+
+        const matchText =
+            e.name.toLowerCase().includes(search) ||
+            e.mobile.includes(search);
+
+        return t >= s && t <= en && matchText;
+    });
+
+    let html = "";
+    let total = 0;
+
+    filtered.forEach((e) => {
+        total += e.amount;
+
+        html += `
+            <div class="entry">
+                <strong>${e.name}</strong> <br>
+                Date: ${e.date} <br>
+                Box: ${e.box} <br>
+                Mobile: ${e.mobile} <br>
+                <strong>Amount: ₹${e.amount}</strong>
+            </div>
+        `;
+    });
+
+    document.getElementById("entryList").innerHTML = html;
+    document.getElementById("total").innerText = total;
 }
 
-.card {
-    background: #fff;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    box-shadow: 0px 0px 6px #ccc;
+// Print / PDF
+function printReport() {
+    window.print();
 }
 
-.card input {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 9px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
+// Export JSON
+function exportJson() {
+    const data = JSON.stringify(entries, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
 
-button {
-    width: 100%;
-    padding: 10px;
-    background: #0066ff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-button:hover {
-    opacity: 0.9;
-}
-
-.filters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.filters input {
-    flex: 1;
-    padding: 9px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-
-.entry {
-    background: white;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 4px #aaa;
-}
-
-.entry strong {
-    color: #333;
-}
-
-.totalBox {
-    background: #e8ffe8;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    font-size: 20px;
-    text-align: center;
-    font-weight: bold;
-    color: green;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "udhar-report.json";
+    a.click();
 }
