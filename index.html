@@ -1,235 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Haji Provision Store - Customer Ledger</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Udhar Manager + Report Jari</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-  <div class="container">
-    <div class="header">
-      <h1><i class="fas fa-store"></i> Haji Provision Store</h1>
-      <div class="summary-cards">
-        <div class="card total">
-          <i class="fas fa-users"></i>
-          <div>
-            <h3>Total Customers</h3>
-            <span id="totalCustomers">0</span>
-          </div>
-        </div>
-        <div class="card debt">
-          <i class="fas fa-rupee-sign"></i>
-          <div>
-            <h3>Total Outstanding</h3>
-            <span id="totalDebt">₹0</span>
-          </div>
-        </div>
-        <div class="card credit">
-          <i class="fas fa-arrow-up"></i>
-          <div>
-            <h3>Total Credit</h3>
-            <span id="totalCredit">₹0</span>
-          </div>
-        </div>
-        <div class="card debit">
-          <i class="fas fa-arrow-down"></i>
-          <div>
-            <h3>Total Debit</h3>
-            <span id="totalDebit">₹0</span>
-          </div>
-        </div>
-      </div>
+    <h1>📘 Udhar Manager</h1>
+
+    <!-- Add Entry -->
+    <div class="card">
+        <h2>Add New Entry</h2>
+
+        <input type="text" id="name" placeholder="Customer Name">
+        <input type="date" id="date">
+        <input type="number" id="amount" placeholder="Amount (₹)">
+        <input type="text" id="box" placeholder="Box Size">
+        <input type="text" id="mobile" placeholder="Mobile Number">
+
+        <button onclick="addEntry()">Add Entry</button>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="tab-container">
-      <div class="tab-nav">
-        <button class="tab-btn active" data-tab="new-entry">
-          <i class="fas fa-plus-circle"></i> New Entry
-        </button>
-        <button class="tab-btn" data-tab="customer-ledger">
-          <i class="fas fa-book"></i> Customer Ledger
-        </button>
-        <button class="tab-btn" data-tab="date-wise-ledger">
-          <i class="fas fa-calendar-alt"></i> Date-wise Ledger
-        </button>
-      </div>
-
-      <!-- New Entry Tab -->
-      <div id="new-entry" class="tab-content active">
-        <div class="form-container">
-          <h2><i class="fas fa-plus-circle"></i> Add New Transaction</h2>
-          <div class="form">
-            <div class="input-group">
-              <input type="date" id="date" value="">
-              <label for="date">Date</label>
-            </div>
-            <div class="input-group">
-              <input type="text" id="name" placeholder=" " list="customerList">
-              <label for="name">Customer Name</label>
-              <datalist id="customerList"></datalist>
-            </div>
-            <div class="input-group">
-              <input type="text" id="mobile" placeholder=" ">
-              <label for="mobile">Mobile Number</label>
-            </div>
-            <div class="input-group">
-              <select id="transactionType">
-                <option value="credit">Credit (Purchase)</option>
-                <option value="debit">Debit (Payment)</option>
-              </select>
-              <label for="transactionType">Transaction Type</label>
-            </div>
-            <div class="input-group">
-              <input type="number" id="amount" placeholder=" " value="0">
-              <label for="amount">Amount (₹)</label>
-            </div>
-            <div class="input-group">
-              <input type="text" id="description" placeholder=" ">
-              <label for="description">Description</label>
-            </div>
-            <div class="input-group">
-              <input type="number" id="previousDue" placeholder=" " value="0" readonly>
-              <label for="previousDue">Previous Due (₹)</label>
-            </div>
-            <div class="input-group">
-              <input type="number" id="newDue" placeholder=" " value="0" readonly>
-              <label for="newDue">New Due (₹)</label>
-            </div>
-            <button id="addBtn" class="glow-btn">
-              <i class="fas fa-plus"></i> Add Transaction
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Customer Ledger Tab -->
-      <div id="customer-ledger" class="tab-content">
-        <div class="table-container">
-          <h2><i class="fas fa-book"></i> Customer Ledger</h2>
-          <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search customers...">
-          </div>
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Customer Name</th>
-                  <th>Mobile Number</th>
-                  <th>Total Credit</th>
-                  <th>Total Debit</th>
-                  <th>Current Balance</th>
-                  <th>Last Transaction</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="customerList"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Date-wise Ledger Tab -->
-      <div id="date-wise-ledger" class="tab-content">
-        <div class="table-container">
-          <h2><i class="fas fa-calendar-alt"></i> Date-wise Customer Ledger</h2>
-          <div class="filter-bar">
-            <div class="filter-group">
-              <label for="ledgerCustomerFilter">Customer:</label>
-              <select id="ledgerCustomerFilter">
-                <option value="">All Customers</option>
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="ledgerDateFilter">Date:</label>
-              <input type="date" id="ledgerDateFilter">
-            </div>
-            <div class="filter-group">
-              <button id="viewLedgerBtn" class="glow-btn">
-                <i class="fas fa-eye"></i> View Ledger
-              </button>
-            </div>
-          </div>
-          <div class="ledger-summary" id="ledgerSummary"></div>
-          <div class="table-wrapper">
-            <table id="ledgerTable">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Credit (₹)</th>
-                  <th>Debit (₹)</th>
-                  <th>Balance (₹)</th>
-                </tr>
-              </thead>
-              <tbody id="dateWiseLedger"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <!-- Search + Date Filter -->
+    <div class="filters">
+        <input type="text" id="search" placeholder="Search by name/mobile" oninput="renderEntries()">
+        <input type="date" id="startDate" onchange="renderEntries()">
+        <input type="date" id="endDate" onchange="renderEntries()">
     </div>
 
-    <div class="actions">
-      <button id="clearAll" class="danger-btn">
-        <i class="fas fa-trash"></i> Delete All Records
-      </button>
-      <button id="exportBtn" class="export-btn">
-        <i class="fas fa-download"></i> Export Customer Ledger
-      </button>
-      <button id="exportDateWiseBtn" class="export-btn">
-        <i class="fas fa-download"></i> Export Date-wise Ledger
-      </button>
+    <!-- Total -->
+    <div class="totalBox">
+        Total Udhar: ₹<span id="total">0</span>
     </div>
-  </div>
 
-  <!-- Edit Modal -->
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Edit Transaction</h3>
-        <span class="close">&times;</span>
-      </div>
-      <div class="modal-body">
-        <div class="input-group">
-          <input type="date" id="editDate">
-          <label for="editDate">Date</label>
-        </div>
-        <div class="input-group">
-          <input type="text" id="editName" placeholder=" ">
-          <label for="editName">Customer Name</label>
-        </div>
-        <div class="input-group">
-          <input type="text" id="editMobile" placeholder=" ">
-          <label for="editMobile">Mobile Number</label>
-        </div>
-        <div class="input-group">
-          <select id="editTransactionType">
-            <option value="credit">Credit (Purchase)</option>
-            <option value="debit">Debit (Payment)</option>
-          </select>
-          <label for="editTransactionType">Transaction Type</label>
-        </div>
-        <div class="input-group">
-          <input type="number" id="editAmount" placeholder=" ">
-          <label for="editAmount">Amount (₹)</label>
-        </div>
-        <div class="input-group">
-          <input type="text" id="editDescription" placeholder=" ">
-          <label for="editDescription">Description</label>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="updateBtn" class="glow-btn">Update Transaction</button>
-        <button id="cancelBtn" class="cancel-btn">Cancel</button>
-      </div>
+    <!-- Entries List -->
+    <div id="entryList"></div>
+
+    <h1 style="margin-top:40px;">📄 Report Jari</h1>
+
+    <!-- Report Section -->
+    <div class="card">
+        <button onclick="printReport()">🖨️ Print / PDF</button>
+        <button onclick="exportJson()">⬇ Export JSON</button>
     </div>
-  </div>
 
-  <div class="notification" id="notification"></div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
