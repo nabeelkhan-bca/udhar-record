@@ -1,51 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shop Ledger App</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop Ledger Mobile</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div id="app">
+    <h2 class="title">Shop Ledger</h2>
 
-<h2 class="title">Shop Ledger</h2>
+    <div class="mode-toggle">
+      <button id="receiveBtn" class="btn active">Receive</button>
+      <button id="payBtn" class="btn">Uddhar</button>
+    </div>
 
-<!-- Entry Form -->
-<form id="entryForm" class="card">
-    <label>Date</label>
-    <input type="date" id="date" required>
+    <div class="form">
+      <input id="customerName" placeholder="Customer Name" />
+      <input id="mobile" placeholder="Mobile" maxlength="10" />
+      <input id="aadhaar" placeholder="Aadhaar" maxlength="12" />
+      <input id="amount" type="number" placeholder="Amount" />
+      <input id="remarks" placeholder="Remarks" />
+      <div class="balance-box">Last Balance: <span id="lastBalance">0</span></div>
+      <button id="saveBtn" class="btn save">Save Entry</button>
+    </div>
 
-    <label>Customer Name</label>
-    <input type="text" id="customer" placeholder="Customer name" required>
+    <div class="search-box">
+      <input id="searchInput" placeholder="Search by name or mobile" />
+    </div>
 
-    <label>Mobile</label>
-    <input type="text" id="mobile" placeholder="Mobile number">
+    <div id="entries"></div>
+  </div>
 
-    <label>Type</label>
-    <select id="type">
-        <option value="pay">Pay (Udhaar Diya)</option>
-        <option value="receive">Receive (Customer Pay)</option>
-    </select>
-
-    <label>Amount</label>
-    <input type="number" id="amount" placeholder="Amount" required>
-
-    <label>Remarks</label>
-    <input type="text" id="remark" placeholder="Note (optional)">
-
-    <button type="submit" class="btn">Save Entry</button>
-</form>
-
-<!-- Search -->
-<input id="search" class="search" placeholder="Search by name or mobile">
-
-<!-- PDF Button -->
-<button id="downloadPDF" class="pdfBtn">Download PDF</button>
-
-<!-- Entries List -->
-<div id="entriesBox"></div>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
