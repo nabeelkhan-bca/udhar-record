@@ -1,128 +1,100 @@
-/* ===== styles.css (Clean & Beautiful Mobile UI) ===== */
-
 body {
-  font-family: "Poppins", sans-serif;
-  background: #f1f3f6;
-  padding: 15px;
-  margin: 0;
+    background: #f3f3f3;
+    font-family: Arial;
+    padding: 15px;
 }
 
-.container {
-  max-width: 500px;
-  margin: auto;
+.title {
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-h2 {
-  text-align: center;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-/* Mode Buttons */
-.mode-btns {
-  display: flex;
-  gap: 10px;
-}
-.mode-btns button {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  background: #dcdcdc;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.mode-btns .active {
-  background: #007bff;
-  color: white;
-  transform: scale(1.02);
-}
-
-/* Main Card */
 .card {
-  background: white;
-  padding: 18px;
-  border-radius: 12px;
-  margin-top: 15px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.input {
-  width: 100%;
-  margin: 8px 0;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 15px;
-  outline: none;
-  transition: 0.2s;
-}
-.input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 6px rgba(0,123,255,0.3);
+.card input, .card select {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
 }
 
-/* Save Button */
 .btn {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-top: 8px;
-  font-weight: 600;
-}
-.save {
-  background: #28a745;
-  color: white;
+    width: 100%;
+    background: #007bff;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
 }
 
-/* Search */
-#searchInput {
-  margin-top: 15px;
-  margin-bottom: 10px;
+.search {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
 }
 
-/* Entries */
-#entries {
-  margin-top: 20px;
+.pdfBtn {
+    width: 100%;
+    padding: 12px;
+    background: #ff5722;
+    color: #fff;
+    border: none;
+    margin-bottom: 20px;
+    border-radius: 8px;
 }
 
-.entry-date {
-  font-weight: bold;
-  margin-top: 20px;
-  font-size: 17px;
-  color: #444;
+.entry-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-.entry {
-  background: white;
-  padding: 14px;
-  border-radius: 12px;
-  margin: 10px 0;
-  border-left: 6px solid #007bff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.entry .type {
-  font-weight: 600;
-  margin-bottom: 6px;
-  font-size: 16px;
+.entry-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
 }
 
-.payNow {
-  margin-top: 10px;
-  background: #28a745;
-  color: white;
-  padding: 7px 12px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
+.date {
+    font-size: 12px;
+    color: #666;
 }
-.payNow:hover {
-  transform: scale(1.05);
+
+.entry-middle {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.pay { color: red; font-weight: bold; }
+.receive { color: green; font-weight: bold; }
+
+.remark {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.bal {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.payNowBtn {
+    width: 100%;
+    padding: 10px;
+    background: #009688;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
 }
