@@ -56,16 +56,6 @@ function render() {
     grouped[date].forEach(e => {
       entriesDiv.innerHTML += `
         <div class='entry'>
-          <div class='type'>${(e.type === "udhar" ? "UDDHAR" : "RECEIVE")} - ₹${e.amount}</div>
-          <div>${e.name} (${e.mobile})</div>
-          <div>Balance: ₹${e.balance}</div>
-          <div>${e.remarks}</div>
-          <button class='payNow' data-id='${e.id}' style="margin-top:6px;background:#28a745;color:white;padding:4px 10px;border-radius:6px;border:none;">Pay Now</button>
-        </div>
-      `;
-    });(e => {
-      entriesDiv.innerHTML += `
-        <div class='entry'>
           <div class='type'>${(e.type === "pay" ? "UDDHAR" : e.type.toUpperCase())()} - ₹${e.amount}</div>
           <div>${e.name} (${e.mobile})</div>
           <div>Balance: ₹${e.balance}</div>
@@ -92,7 +82,6 @@ saveBtn.onclick = () => {
   let newBalance = mode === "receive" ? previous - amount : previous + amount;
 
   let entry = {
-    id: Date.now(), {
     date: new Date().toLocaleDateString(),
     name,
     mobile,
@@ -124,39 +113,6 @@ aadhaarInput.oninput = () => {
       mobileInput.value = match.mobile;
       lastBalanceSpan.innerText = match.balance;
     }
-  }
-};
-
-// Pay Now Action
-entriesDiv.onclick = (e) => {
-  if (e.target.classList.contains('payNow')) {
-    let id = Number(e.target.getAttribute('data-id'));
-    let entry = data.find(x => x.id === id);
-    if (!entry) return;
-
-    let amount = prompt(`Enter amount to receive from ${entry.name}:`);
-    if (!amount) return;
-    amount = Number(amount);
-    if (amount <= 0) return alert('Invalid amount');
-
-    let previous = getLastBalance(entry.mobile);
-    let newBalance = previous - amount;
-
-    let newEntry = {
-      id: Date.now(),
-      date: new Date().toLocaleDateString(),
-      name: entry.name,
-      mobile: entry.mobile,
-      aadhaar: entry.aadhaar,
-      amount,
-      type: "receive",
-      remarks: "Auto-pay from entry",
-      balance: newBalance
-    };
-
-    data.push(newEntry);
-    localStorage.setItem('ledgerData', JSON.stringify(data));
-    render();
   }
 };
 
