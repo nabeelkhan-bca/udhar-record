@@ -1,122 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Udhar Ledger — Customer & Shop Owner</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Udhar Manager – Material UI</title>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">💼</div>
-      <div>
-        <h1>Udhar Ledger</h1>
-        <div class="subtitle">Customer & Shop Owner Dashboard</div>
-      </div>
+
+    <header>
+        <h1>📘 Udhar Manager</h1>
+        <p>Material You Inspired Modern Ledger System</p>
+    </header>
+
+    <!-- Add Entry Card -->
+    <div class="card">
+        <h2>Add New Entry</h2>
+
+        <input id="customer" type="text" placeholder="Customer Name">
+        <input id="mobile" type="text" placeholder="Mobile Number">
+        <input id="date" type="date">
+        <input id="amount" type="number" placeholder="Amount (₹)">
+        
+        <select id="type">
+            <option value="credit">Credit (+)</option>
+            <option value="debit">Debit (–)</option>
+        </select>
+
+        <textarea id="note" placeholder="Note (optional)"></textarea>
+
+        <button onclick="addEntry()">Add Entry</button>
     </div>
 
-    <div class="top-actions">
-      <input id="quickSearch" placeholder="Search name or mobile..." />
-      <select id="viewMode" onchange="renderAll()">
-        <option value="owner">Shop Owner (All)</option>
-        <option value="customer">Customer Ledger</option>
-      </select>
-      <button onclick="exportCSV()">Export CSV</button>
-      <button onclick="exportJson()">Export JSON</button>
-      <button onclick="printReport()">Print / PDF</button>
+    <!-- Search + Filter -->
+    <div class="filterBox">
+        <input id="search" type="text" placeholder="Search customer / mobile…" oninput="renderList()">
+        <input id="fromDate" type="date" onchange="renderList()">
+        <input id="toDate" type="date" onchange="renderList()">
     </div>
-  </header>
 
-  <main class="container">
-    <!-- LEFT: Add / Filter -->
-    <section class="left">
-      <div class="card">
-        <h2>Add Transaction</h2>
-        <div class="row">
-          <input id="name" placeholder="Customer Name" />
-          <input id="mobile" placeholder="Mobile" />
-        </div>
-        <div class="row">
-          <input id="date" type="date" />
-          <select id="type">
-            <option value="debit">Debit (Given to Customer)</option>
-            <option value="credit">Credit (Taken from Customer)</option>
-          </select>
-        </div>
-        <div class="row">
-          <input id="amount" placeholder="Amount (₹)" type="number" />
-          <input id="box" placeholder="Box Size / Note" />
-        </div>
-        <textarea id="desc" placeholder="Description (optional)"></textarea>
-        <div class="row">
-          <button onclick="addTransaction()">Add Transaction</button>
-          <button class="muted" onclick="clearForm()">Clear</button>
-        </div>
-      </div>
+    <!-- Total Balance -->
+    <div class="balanceBox">
+        <h2>Total Balance</h2>
+        <h1 id="balanceAmount">₹0</h1>
+    </div>
 
-      <div class="card">
-        <h3>Filters</h3>
-        <div class="row">
-          <input id="startDate" type="date" onchange="renderAll()" />
-          <input id="endDate" type="date" onchange="renderAll()" />
-        </div>
-        <div class="row">
-          <select id="customerSelect" onchange="renderAll()">
-            <option value="">— Select Customer (All) —</option>
-          </select>
-          <button class="muted" onclick="resetFilters()">Reset</button>
-        </div>
-      </div>
+    <!-- Entries List -->
+    <div id="entryList"></div>
 
-      <div class="card balance-card">
-        <h3>Balance Sheet</h3>
-        <div class="balance-grid">
-          <div class="b-item">
-            <div class="label">Total Credit</div>
-            <div id="totalCredit" class="value">₹0</div>
-          </div>
-          <div class="b-item">
-            <div class="label">Total Debit</div>
-            <div id="totalDebit" class="value">₹0</div>
-          </div>
-          <div class="b-item net">
-            <div class="label">Net Balance</div>
-            <div id="netBalance" class="value">₹0</div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <h2 class="sectionTitle">📄 Professional Report</h2>
 
-    <!-- RIGHT: Ledger / Lists -->
-    <section class="right">
-      <div class="card">
-        <h2 id="rightTitle">All Transactions</h2>
-        <div id="listHead" class="list-head">
-          <div class="col name">Name</div>
-          <div class="col date">Date</div>
-          <div class="col type">Type</div>
-          <div class="col amt">Amount</div>
-          <div class="col note">Note</div>
-          <div class="col act">Actions</div>
-        </div>
-        <div id="entryList" class="entry-list"></div>
+    <div class="card">
+        <button onclick="printReport()">🖨 Print / PDF</button>
+        <button onclick="exportJson()">⬇ Export JSON</button>
+    </div>
 
-        <div id="noRecords" class="no-records" style="display:none">No transactions found.</div>
-      </div>
+    <script src="script.js"></script>
 
-      <div class="card small">
-        <h3>Customer Quick Ledger</h3>
-        <div id="customerSummary" class="cust-list"></div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div>Made with ♥ — Udhar Ledger</div>
-    <div class="small-muted">Export / Print friendly | Mobile responsive</div>
-  </footer>
-
-  <script src="script.js"></script>
 </body>
 </html>
