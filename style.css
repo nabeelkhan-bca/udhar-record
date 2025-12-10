@@ -1,100 +1,185 @@
+/* ===== styles.css ===== */
+
 body {
-    background: #f3f3f3;
-    font-family: Arial;
-    padding: 15px;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
 }
-
+#app {
+  padding: 15px;
+  max-width: 480px;
+  margin: auto;
+}
 .title {
-    text-align: center;
-    margin-bottom: 20px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 15px;
 }
-
-.card {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.mode-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
 }
-
-.card input, .card select {
-    width: 100%;
-    padding: 10px;
-    margin: 6px 0 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
 .btn {
-    width: 100%;
-    background: #007bff;
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  background: #ddd;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+}
+.btn.active {
+  background: #007bff;
+  color: white;
+}
+.form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+.balance-box {
+  margin-bottom: 12px;
+  font-weight: bold;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+.btn.save {
+  background: #28a745;
+  color: white;
+}
+.search-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+}
+.entry-date {
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+.entry {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-bottom: 8px;
+}
+.entry .type {
+  font-weight: bold;
 }
 
-.search {
-    width: 100%;
-    padding: 10px;
-    margin-top: 20px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+/* ===== script.js ===== */
+
+let mode = "receive";
+let data = JSON.parse(localStorage.getItem("ledgerData") || "[]");
+
+const receiveBtn = document.getElementById("receiveBtn");
+const payBtn = document.getElementById("payBtn");
+const saveBtn = document.getElementById("saveBtn");
+const entriesDiv = document.getElementById("entries");
+const searchInput = document.getElementById("searchInput");
+
+receiveBtn.onclick = () => switchMode("receive");
+payBtn.onclick = () => switchMode("pay");
+
+function switchMode(m) {
+  mode = m;
+  receiveBtn.classList.toggle("active", m === "receive");
+  payBtn.classList.toggle("active", m === "pay");
 }
 
-.pdfBtn {
-    width: 100%;
-    padding: 12px;
-    background: #ff5722;
-    color: #fff;
-    border: none;
-    margin-bottom: 20px;
-    border-radius: 8px;
+function getLastBalance(mobile) {
+  let list = data.filter(e => e.mobile === mobile);
+  if (list.length === 0) return 0;
+  return list[list.length - 1].balance;
 }
 
-.entry-card {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+function render() {
+  entriesDiv.innerHTML = "";
+  let filtered = data.filter(e => {
+    let q = searchInput.value.toLowerCase();
+    return (
+      e.name.toLowerCase().includes(q) ||
+      e.mobile.includes(q)
+    );
+  });
+
+  let grouped = {};
+  filtered.forEach(e => {
+    if (!grouped[e.date]) grouped[e.date] = [];
+    grouped[e.date].push(e);
+  });
+
+  Object.keys(grouped).forEach(date => {
+    entriesDiv.innerHTML += `<div class='entry-date'>${date}</div>`;
+    grouped[date].forEach(e => {
+      entriesDiv.innerHTML += `
+        <div class='entry'>
+          <div class='type'>${e.type.toUpperCase()} - ₹${e.amount}</div>
+          <div>${e.name} (${e.mobile})</div>
+          <div>Balance: ₹${e.balance}</div>
+          <div>${e.remarks}</div>
+        </div>
+      `;
+    });
+  });
 }
 
-.entry-top {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
+searchInput.oninput = render;
 
-.date {
-    font-size: 12px;
-    color: #666;
-}
+saveBtn.onclick = () => {
+  let name = customerName.value.trim();
+  let mobile = mobileInput.value.trim();
+  let aadhaar = aadhaar.value.trim();
+  let amount = Number(amountInput.value.trim());
+  let remarks = remarks.value.trim();
 
-.entry-middle {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
+  if (!name || !mobile || !amount) return alert("Missing fields");
 
-.pay { color: red; font-weight: bold; }
-.receive { color: green; font-weight: bold; }
+  let previous = getLastBalance(mobile);
+  let newBalance = mode === "receive" ? previous - amount : previous + amount;
 
-.remark {
-    font-size: 14px;
-    margin-bottom: 6px;
-}
+  let entry = {
+    date: new Date().toLocaleDateString(),
+    name,
+    mobile,
+    aadhaar,
+    amount,
+    type: mode,
+    remarks,
+    balance: newBalance
+  };
 
-.bal {
-    font-weight: bold;
-    margin-bottom: 10px;
-}
+  data.push(entry);
+  localStorage.setItem("ledgerData", JSON.stringify(data));
 
-.payNowBtn {
-    width: 100%;
-    padding: 10px;
-    background: #009688;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-}
+  lastBalance.innerText = newBalance;
+  render();
+};
+
+mobileInput.oninput = () => {
+  lastBalance.innerText = getLastBalance(mobileInput.value);
+};
+
+aadhaar.oninput = () => {
+  if (aadhaar.value.length === 12) {
+    let match = data.find(e => e.aadhaar === aadhaar.value);
+    if (match) {
+      customerName.value = match.name;
+      mobileInput.value = match.mobile;
+      lastBalance.innerText = match.balance;
+    }
+  }
+};
+
+render();
