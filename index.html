@@ -1,406 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Ledger Pro - Customer Account Book</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Loan Record System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- App Header -->
-    <header class="app-header">
-        <div class="header-content">
-            <div class="header-left">
-                <svg class="app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-                <div>
-                    <h1 class="app-title">Ledger Pro</h1>
-                    <p class="app-subtitle">Customer Account Book</p>
-                </div>
-            </div>
-            <button class="icon-btn" onclick="showMenu()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="3" y1="12" x2="21" y2="12"/>
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <line x1="3" y1="18" x2="21" y2="18"/>
-                </svg>
-            </button>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-receipt"></i> Advanced Loan Record System</h1>
+      <div class="summary-cards">
+        <div class="card total">
+          <i class="fas fa-users"></i>
+          <div>
+            <h3>Total Customers</h3>
+            <span id="totalCustomers">0</span>
+          </div>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="app-main">
-        <!-- Dashboard View -->
-        <div id="dashboardView">
-            <!-- Search Bar -->
-            <div class="search-container">
-                <div class="search-box">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/>
-                        <path d="m21 21-4.35-4.35"/>
-                    </svg>
-                    <input type="text" id="searchInput" placeholder="Search by name, mobile, or date..." oninput="filterCustomers()">
-                </div>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="stats-section">
-                <div class="stat-card stat-primary">
-                    <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <p class="stat-label">Total Customers</p>
-                        <p class="stat-value" id="totalCustomers">0</p>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-success">
-                    <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                            <polyline points="17 6 23 6 23 12"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <p class="stat-label">Total Credit</p>
-                        <p class="stat-value" id="totalCredit">₹0</p>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-danger">
-                    <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-                            <polyline points="17 18 23 18 23 12"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <p class="stat-label">Total Debit</p>
-                        <p class="stat-value" id="totalDebit">₹0</p>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-purple">
-                    <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="1" x2="12" y2="23"/>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                        </svg>
-                    </div>
-                    <div class="stat-info">
-                        <p class="stat-label">Net Balance</p>
-                        <p class="stat-value" id="netBalance">₹0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Customers List -->
-            <div class="section-header">
-                <h2>Customers</h2>
-            </div>
-            <div id="customersList" class="customers-list"></div>
+        <div class="card debt">
+          <i class="fas fa-rupee-sign"></i>
+          <div>
+            <h3>Total Balance</h3>
+            <span id="totalDebt">₹0</span>
+          </div>
         </div>
-
-        <!-- Ledger View -->
-        <div id="ledgerView" style="display: none;">
-            <!-- Customer Header -->
-            <div class="ledger-header">
-                <button class="back-btn" onclick="showDashboard()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="19" y1="12" x2="5" y2="12"/>
-                        <polyline points="12 19 5 12 12 5"/>
-                    </svg>
-                </button>
-                <div class="customer-header-info">
-                    <h2 id="ledgerCustomerName"></h2>
-                    <p id="ledgerCustomerMobile"></p>
-                </div>
-                <button class="icon-btn" onclick="showLedgerMenu()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="1"/>
-                        <circle cx="12" cy="5" r="1"/>
-                        <circle cx="12" cy="19" r="1"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Balance Summary -->
-            <div class="balance-summary-cards">
-                <div class="summary-card summary-credit">
-                    <p class="summary-label">Total Credit</p>
-                    <p class="summary-amount" id="customerTotalCredit">₹0</p>
-                </div>
-                <div class="summary-card summary-debit">
-                    <p class="summary-label">Total Debit</p>
-                    <p class="summary-amount" id="customerTotalDebit">₹0</p>
-                </div>
-                <div class="summary-card summary-balance">
-                    <p class="summary-label">Net Balance</p>
-                    <p class="summary-amount" id="customerBalance">₹0</p>
-                </div>
-            </div>
-
-            <!-- Date Filter (Collapsible) -->
-            <div class="filter-section">
-                <button class="filter-toggle" onclick="toggleFilter()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="4" y1="21" x2="4" y2="14"/>
-                        <line x1="4" y1="10" x2="4" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="12"/>
-                        <line x1="12" y1="8" x2="12" y2="3"/>
-                        <line x1="20" y1="21" x2="20" y2="16"/>
-                        <line x1="20" y1="12" x2="20" y2="3"/>
-                        <line x1="1" y1="14" x2="7" y2="14"/>
-                        <line x1="9" y1="8" x2="15" y2="8"/>
-                        <line x1="17" y1="16" x2="23" y2="16"/>
-                    </svg>
-                    Filter by Date
-                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                </button>
-                <div class="filter-content" id="filterContent">
-                    <div class="date-inputs">
-                        <div class="input-group">
-                            <label>From Date</label>
-                            <input type="date" id="filterFromDate" onchange="filterLedgerByDate()">
-                        </div>
-                        <div class="input-group">
-                            <label>To Date</label>
-                            <input type="date" id="filterToDate" onchange="filterLedgerByDate()">
-                        </div>
-                    </div>
-                    <button class="btn-clear-filter" onclick="clearDateFilter()">Clear Filter</button>
-                </div>
-            </div>
-
-            <!-- Entries List -->
-            <div class="section-header">
-                <h3>Ledger Entries</h3>
-            </div>
-            <div id="entriesList" class="entries-list"></div>
-        </div>
-    </main>
-
-    <!-- Floating Action Button -->
-    <button class="fab" id="fab" onclick="handleFabClick()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-    </button>
-
-    <!-- Bottom Sheet Menu -->
-    <div class="bottom-sheet" id="menuSheet">
-        <div class="bottom-sheet-content">
-            <div class="bottom-sheet-handle"></div>
-            <h3 class="bottom-sheet-title">Menu</h3>
-            <div class="menu-items">
-                <button class="menu-item" onclick="exportData(); closeMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    <span>Export Data</span>
-                </button>
-                <label class="menu-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    <span>Import Data</span>
-                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
-                </label>
-                <button class="menu-item" onclick="printLedger(); closeMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6 9 6 2 18 2 18 9"/>
-                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                        <rect x="6" y="14" width="12" height="8"/>
-                    </svg>
-                    <span>Print</span>
-                </button>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <!-- Ledger Menu Bottom Sheet -->
-    <div class="bottom-sheet" id="ledgerMenuSheet">
-        <div class="bottom-sheet-content">
-            <div class="bottom-sheet-handle"></div>
-            <h3 class="bottom-sheet-title">Options</h3>
-            <div class="menu-items">
-                <button class="menu-item" onclick="printCustomerLedger(); closeLedgerMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6 9 6 2 18 2 18 9"/>
-                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                        <rect x="6" y="14" width="12" height="8"/>
-                    </svg>
-                    <span>Print Ledger</span>
-                </button>
-                <button class="menu-item menu-item-danger" onclick="deleteCurrentCustomer(); closeLedgerMenu();">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                    <span>Delete Customer</span>
-                </button>
-            </div>
+    <div class="form-container">
+      <h2><i class="fas fa-plus-circle"></i> Add New Record</h2>
+      <div class="form">
+        <div class="input-group">
+          <input type="date" id="date" value="">
+          <label for="date">Date</label>
         </div>
+        <div class="input-group">
+          <input type="text" id="name" placeholder=" ">
+          <label for="name">Customer Name</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="mobile" placeholder=" ">
+          <label for="mobile">Mobile Number</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="udharAmount" placeholder=" ">
+          <label for="udharAmount">Loan Amount (₹)</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="creditAmount" placeholder=" ">
+          <label for="creditAmount">Credit Amount (₹)</label>
+        </div>
+        <button id="addBtn" class="glow-btn">
+          <i class="fas fa-plus"></i> Add Record
+        </button>
+      </div>
     </div>
 
-    <!-- Add Customer Modal -->
-    <div class="modal" id="addCustomerModal">
-        <div class="modal-backdrop" onclick="closeAddCustomerModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add New Customer</h3>
-                <button class="close-btn" onclick="closeAddCustomerModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>Customer Name *</label>
-                    <input type="text" id="newCustomerName" placeholder="Enter customer name">
-                </div>
-                <div class="input-group">
-                    <label>Mobile Number *</label>
-                    <input type="tel" id="newCustomerMobile" placeholder="Enter mobile number">
-                </div>
-                <div class="input-group">
-                    <label>Address (Optional)</label>
-                    <input type="text" id="newCustomerAddress" placeholder="Enter address">
-                </div>
-                <div class="input-group">
-                    <label>Opening Balance (₹)</label>
-                    <input type="number" id="newCustomerOpeningBalance" placeholder="0.00" step="0.01">
-                    <small>Positive for credit, negative for debit</small>
-                </div>
-                <button class="btn-primary btn-block" onclick="addCustomer()">Add Customer</button>
-            </div>
-        </div>
+    <div class="table-container">
+      <h2><i class="fas fa-list"></i> Customer Records</h2>
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search customers...">
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th data-sort="date">Date <i class="fas fa-sort"></i></th>
+              <th data-sort="name">Customer Name <i class="fas fa-sort"></i></th>
+              <th data-sort="mobile">Mobile Number <i class="fas fa-sort"></i></th>
+              <th data-sort="udhar">Loan Amount <i class="fas fa-sort"></i></th>
+              <th data-sort="credit">Credit Amount <i class="fas fa-sort"></i></th>
+              <th data-sort="balance">Balance Amount <i class="fas fa-sort"></i></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recordList"></tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- Add Entry Modal -->
-    <div class="modal" id="addEntryModal">
-        <div class="modal-backdrop" onclick="closeAddEntryModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add New Entry</h3>
-                <button class="close-btn" onclick="closeAddEntryModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="entry-type-selector">
-                    <button class="type-btn active" data-type="credit" onclick="selectEntryType('credit')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                            <polyline points="17 6 23 6 23 12"/>
-                        </svg>
-                        Credit
-                    </button>
-                    <button class="type-btn" data-type="debit" onclick="selectEntryType('debit')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-                            <polyline points="17 18 23 18 23 12"/>
-                        </svg>
-                        Debit
-                    </button>
-                </div>
-                <div class="input-group">
-                    <label>Date *</label>
-                    <input type="date" id="entryDate">
-                </div>
-                <div class="input-group">
-                    <label>Amount *</label>
-                    <input type="number" id="entryAmount" placeholder="0.00" step="0.01">
-                </div>
-                <div class="input-group">
-                    <label>Description (Optional)</label>
-                    <textarea id="entryDescription" placeholder="Enter description" rows="3"></textarea>
-                </div>
-                <button class="btn-primary btn-block" onclick="addEntry()">Add Entry</button>
-            </div>
-        </div>
+    <div class="actions">
+      <button id="clearAll" class="danger-btn">
+        <i class="fas fa-trash"></i> Delete All Records
+      </button>
+      <button id="exportBtn" class="export-btn">
+        <i class="fas fa-download"></i> Export to CSV
+      </button>
     </div>
+  </div>
 
-    <!-- Edit Entry Modal -->
-    <div class="modal" id="editEntryModal">
-        <div class="modal-backdrop" onclick="closeEditEntryModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Entry</h3>
-                <button class="close-btn" onclick="closeEditEntryModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="entry-type-selector">
-                    <button class="type-btn" data-type="credit" onclick="selectEditEntryType('credit')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-                            <polyline points="17 6 23 6 23 12"/>
-                        </svg>
-                        Credit
-                    </button>
-                    <button class="type-btn" data-type="debit" onclick="selectEditEntryType('debit')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-                            <polyline points="17 18 23 18 23 12"/>
-                        </svg>
-                        Debit
-                    </button>
-                </div>
-                <div class="input-group">
-                    <label>Date *</label>
-                    <input type="date" id="editEntryDate">
-                </div>
-                <div class="input-group">
-                    <label>Amount *</label>
-                    <input type="number" id="editEntryAmount" placeholder="0.00" step="0.01">
-                </div>
-                <div class="input-group">
-                    <label>Description (Optional)</label>
-                    <textarea id="editEntryDescription" placeholder="Enter description" rows="3"></textarea>
-                </div>
-                <div class="button-group">
-                    <button class="btn-success" onclick="updateEntry()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                        Save
-                    </button>
-                    <button class="btn-secondary" onclick="closeEditEntryModal()">Cancel</button>
-                </div>
-            </div>
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Record</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <input type="date" id="editDate">
+          <label for="editDate">Date</label>
         </div>
+        <div class="input-group">
+          <input type="text" id="editName" placeholder=" ">
+          <label for="editName">Customer Name</label>
+        </div>
+        <div class="input-group">
+          <input type="text" id="editMobile" placeholder=" ">
+          <label for="editMobile">Mobile Number</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="editUdhar" placeholder=" ">
+          <label for="editUdhar">Loan Amount (₹)</label>
+        </div>
+        <div class="input-group">
+          <input type="number" id="editCredit" placeholder=" ">
+          <label for="editCredit">Credit Amount (₹)</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="updateBtn" class="glow-btn">Update Record</button>
+        <button id="cancelBtn" class="cancel-btn">Cancel</button>
+      </div>
     </div>
+  </div>
 
-    <script src="script.js"></script>
+  <div class="notification" id="notification"></div>
+
+  <script src="script.js"></script>
 </body>
 </html>
