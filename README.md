@@ -1,6 +1,6 @@
 # 🏦 Uddhar Record Dashboard
 
-Namaste! 🙏  
+MD! 🙏  
 Yah repository mere **Uddhar Record aur Financial Achievements** ko showcase karta hai.  
 Yahaan aap apni sabhi transactions, milestones, aur progress dekh sakte hain.
 
