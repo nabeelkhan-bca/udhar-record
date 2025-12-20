@@ -1,4 +1,4 @@
-# 🏦 Uddhar Record Dashboard
+# 🏦 Customer-Managment-System
 
 MD! 🙏  
 Yah repository mere **Uddhar Record aur Financial Achievements** ko showcase karta hai.  
